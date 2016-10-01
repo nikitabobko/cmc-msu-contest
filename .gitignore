@@ -1,0 +1,6 @@
+# Compiled
+*.exe
+*.out
+
+# Debug compiled on Mac
+*.dSYM
