@@ -4,7 +4,7 @@ int main(void) {
 	long long int x, y;
 	scanf("%lld%lld", &x, &y);
 	if (x < y) {
-		int t = x;
+		long long int t = x;
 		x = y;
 		y = t;
 	}
