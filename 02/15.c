@@ -14,6 +14,6 @@ int main(void) {
 		if ((arr[i] & (1 << whichBit)) >> whichBit) xor1 ^= arr[i];
 		else xor2 ^= arr[i];
 	}
-	printf("%d %d\n", xor1 < xor2 ? xor1 : xor2, xor1 < xor2 ? xor2 : xor1);
+	printf("%u %u\n", xor1 < xor2 ? xor1 : xor2, xor1 < xor2 ? xor2 : xor1);
 	return 0;
 }
