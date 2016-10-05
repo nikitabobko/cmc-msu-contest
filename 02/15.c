@@ -8,9 +8,7 @@ int main(void) {
 		scanf("%u", arr + i);
 		xor ^= arr[i];
 	}
-	for (i = 0; xor > 0; i++, xor >>= 1) {
-		if (xor & 1) break;
-	}
+	for (i = 0; xor > 0; i++, xor >>= 1) if (xor & 1) break;
 	unsigned int whichBit = i;
 	for (i = 0; i < n; i++) {
 		if ((arr[i] & (1 << whichBit)) >> whichBit) xor1 ^= arr[i];
