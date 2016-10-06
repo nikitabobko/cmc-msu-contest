@@ -4,16 +4,14 @@ int main(void) {
 	int matrix[8][8];
 	int i, count = 64;
 	for (i = 0; i < 64; i++) matrix[i / 8][i % 8] = 0;
-	while(1) {
-		char y;
-		scanf("%c", &y);
-		if (y == '\n') break;
-		y -= 'a';
-		int x;
-		scanf("%d", &x);
-		x--;
-		if (!matrix[(unsigned char)y][x]) count--;
-		matrix[(unsigned char)y][x] = 1;
+	char string[129];
+	scanf("%s", string);
+	for (i = 0; 1; i++) {
+		if (string[i] == '\0') break;
+		int y = string[i] - 'a';
+		int x = string[++i] - '1';
+		if (!matrix[y][x]) count--;
+		matrix[y][x] = 1;
 		int j;
 		for (j = 0; j < 9; j++) {
 			int y1 = j / 3 - 1 + y, x1 = j % 3 - 1 + x;
