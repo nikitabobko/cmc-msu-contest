@@ -9,7 +9,6 @@ int main(void){
 	int mask = 1;
 	// Hard algorithm, don't try to understand! Even I've forgotten how it works.
 	for (i = 0; 1; i++, mask <<= 1) {
-		//int xor[0] = 0, xor[1] = 0;
 		int xor[] = {0, 0, 0, 0};
 		int j;
 		for (j = 0; j < n; j++) {
