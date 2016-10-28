@@ -1,13 +1,15 @@
 #include <stdio.h>
 #include <assert.h>
 
-long long int recursive(void) {
-	long long int number = 0;
-	char c = 0, isNumber = 1, isPositiveNumber = 1;
-	while (1) {
-		char temp;
-		if (scanf("%c", &temp) == EOF) break;
-		if (temp == ' ' || temp == '\n') break;
+int recursive(void) {
+	int number = 0;
+	char c, isNumber = 1, isPositiveNumber = 1;
+	// Skip for spaces
+	do {
+		c = getchar();
+	} while(c == ' ');
+	char temp = c;
+	while (temp != ' ' && temp != EOF && temp != '\n') {
 		c = temp;
 		if (c >= '0' && c <= '9') {
 			number = number * 10 + (c - '0');
@@ -16,6 +18,7 @@ long long int recursive(void) {
 		} else {
 			isNumber = 0;
 		}
+		temp = getchar();
 	}
 	if (isNumber) return number * (isPositiveNumber ? 1 : (-1));
 	else {
@@ -31,6 +34,6 @@ long long int recursive(void) {
 }
 
 int main(void) {
-	printf("%lld\n", recursive());
+	printf("%d\n", recursive());
 	return 0;
 }
