@@ -48,9 +48,9 @@ void sort(_space* x, int first, int last, char compareMode) {
 				swap(&x[i], &x[j]);
 			}
 		}
-		_space* temp = &x[pivot];
+		_space temp = x[pivot];
 		x[pivot] = x[j];
-		x[j] = *temp;
+		x[j] = temp;
 		sort(x, first, j - 1, compareMode);
 		sort(x, j + 1, last, compareMode);
 	}
