@@ -48,9 +48,7 @@ void sort(_space* x, int first, int last, char compareMode) {
 				swap(&x[i], &x[j]);
 			}
 		}
-		_space temp = x[pivot];
-		x[pivot] = x[j];
-		x[j] = temp;
+		swap(&x[pivot], &x[j]);
 		sort(x, first, j - 1, compareMode);
 		sort(x, j + 1, last, compareMode);
 	}
@@ -76,6 +74,7 @@ int main(void) {
 			i--;
 		}
 	}
+	_space* point = spacesArr;
 	sort(spacesArr, 0, numberOfSpaces-1, 1);
 	// i - lenght
 	for (i = k - i; i > 0; i--) {
