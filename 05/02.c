@@ -33,8 +33,8 @@ void printMatrix(int* matrix, int dimension) {
 int main(void) {
 	int n;
 	scanf("%d", &n);
-	int maxTrace = 0;
-	long long maxTraceMatrixDimension = 0;
+	long long maxTrace = 0;
+	int maxTraceMatrixDimension = 0;
 	int* maxTraceMatrix = NULL; 
 	for (int i = 0; i < n; i++) {
 		int dimension;
