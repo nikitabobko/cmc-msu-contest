@@ -1,6 +1,7 @@
 # Compiled
 *.exe
 *.out
+*.o
 
 # Debug compiled on Mac
 *.dSYM
