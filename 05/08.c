@@ -46,16 +46,6 @@ int main(void) {
 			for (int j = 0; j < n; j++) {
 				if (matrix[i][j] == k) {
 					filledCount += fill(matrix, i, j, k + 1, n);
-
-					// printf("\n");
-					// printf("\n");
-
-					// for (int i = 0; i < n; i++) {
-					// 	for (int j = 0; j < n; j++) {
-					// 		printf("%d ", matrix[i][j]);
-					// 	}
-					// 	printf("\n");
-					// }
 				}
 			}
 		}
