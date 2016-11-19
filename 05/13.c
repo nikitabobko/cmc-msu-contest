@@ -22,25 +22,13 @@ int **allocateMatrix(int n, int m, const char isMalloc) {
 }
 
 LinkedList *addToList(LinkedList *linkedList, int y, int x) {
-	LinkedList *headBackup = linkedList;
-	while (linkedList != NULL && linkedList->next != NULL) {
-		linkedList = linkedList->next;
-	}
-	if (linkedList == NULL) {
-		linkedList = malloc(sizeof(LinkedList));
-		linkedList->y = y;
-		linkedList->x = x;
-		linkedList->next = NULL;
-		linkedList->previous = NULL;
-		return linkedList;
-	} else {
-		linkedList->next = malloc(sizeof(LinkedList));
-		linkedList->next->y = y;
-		linkedList->next->x = x;
-		linkedList->next->previous = linkedList;
-		linkedList->next->next = NULL;
-		return headBackup;
-	}
+	LinkedList *insert = malloc(sizeof(LinkedList));
+	insert->y = y;
+	insert->x = x;
+	insert->next = linkedList;
+	insert->previous = NULL;
+	if (linkedList != NULL) linkedList->previous = insert;
+	return insert;
 }
 
 LinkedList *removeFromList(LinkedList *linkedList, LinkedList *objToRemove) {
