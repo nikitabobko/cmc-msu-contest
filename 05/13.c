@@ -89,7 +89,7 @@ int main(void) {
 			int newYOffset = y + yOffset[i], newXOffset = x + xOffset[i];
 			if (newYOffset >= 0 && newXOffset >= 0 && newXOffset < m && newYOffset < n
 				&& !isPinned[newYOffset][newXOffset] && (graph[newYOffset][newXOffset] == 0
- 				|| graph[newYOffset][newXOffset]>graph[y][x]+abs(map[newYOffset][newXOffset]-map[y][x]))){
+				|| graph[newYOffset][newXOffset]>graph[y][x]+abs(map[newYOffset][newXOffset]-map[y][x]))){
 				graph[newYOffset][newXOffset] = graph[y][x]+abs(map[newYOffset][newXOffset]-map[y][x]);
 				linkedList = addToList(linkedList, newYOffset, newXOffset);
 			}
