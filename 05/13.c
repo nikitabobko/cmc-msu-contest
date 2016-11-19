@@ -21,14 +21,31 @@ int **allocateMatrix(int n, int m, const char isMalloc) {
 	return matrix;
 }
 
-LinkedList *addToList(LinkedList *linkedList, int y, int x) {
-	LinkedList *insert = malloc(sizeof(LinkedList));
-	insert->y = y;
+LinkedList *addToList(LinkedList *linkedList, int y, int x, int** const graph) {
+	LinkedList* curElement = linkedList;
+	for (;curElement != NULL && curElement->next != NULL 
+		&& graph[curElement->next->y][curElement->next->x] < graph[y][x]; 
+		curElement = curElement->next);
+	LinkedList* insert = malloc(sizeof(LinkedList));
 	insert->x = x;
-	insert->next = linkedList;
-	insert->previous = NULL;
-	if (linkedList != NULL) linkedList->previous = insert;
-	return insert;
+	insert->y = y;
+	if (curElement == NULL) {	
+		insert->previous = NULL;
+		insert->next = NULL;
+		return insert;
+	} else {
+		if (curElement->next == NULL) {
+			curElement->next = insert;
+			insert->previous = curElement;
+			insert->next = NULL;
+		} else {
+			insert->previous = curElement;
+			insert->next = curElement->next;
+			insert->next->previous = insert;
+			curElement->next = insert;
+		}
+		return linkedList;
+	}
 }
 
 LinkedList *removeFromList(LinkedList *linkedList, LinkedList *objToRemove) {
@@ -74,25 +91,26 @@ int main(void) {
 	int y = startY, x = startX;
 	while (!isPinned[endY][endX]) {
 		for (int i = 0; i < 4; i++) {
-			int newYOffset = y + yOffset[i], newXOffset = x + xOffset[i];
-			if (newYOffset >= 0 && newXOffset >= 0 && newXOffset < m && newYOffset < n
-				&& !isPinned[newYOffset][newXOffset] && (graph[newYOffset][newXOffset] == 0
-				|| graph[newYOffset][newXOffset]>graph[y][x]+abs(map[newYOffset][newXOffset]-map[y][x]))){
-				graph[newYOffset][newXOffset] = graph[y][x]+abs(map[newYOffset][newXOffset]-map[y][x]);
-				linkedList = addToList(linkedList, newYOffset, newXOffset);
+			int newY = y + yOffset[i], newX = x + xOffset[i];
+			if (newY >= 0 && newX >= 0 && newX < m && newY < n
+				&& (abs(endY - newY) < abs(endY - y) || abs(endX - newX) < abs(endX - x))
+				&& !isPinned[newY][newX] && (graph[newY][newX] == 0
+				|| graph[newY][newX] > graph[y][x] + abs(map[newY][newX] - map[y][x]))) {
+				graph[newY][newX] = graph[y][x] + abs(map[newY][newX] - map[y][x]);
+				linkedList = addToList(linkedList, newY, newX, graph);
 			}
 		}
-		LinkedList *minElement = NULL, *curElement;
-		for (curElement = linkedList; curElement != NULL; curElement = curElement->next) {
-			if (minElement == NULL || 
-				graph[curElement->y][curElement->x] < graph[minElement->y][minElement->x]){
-				minElement = curElement;
-			}
-		}
-		isPinned[minElement->y][minElement->x] = 1;
-		y = minElement->y;
-		x = minElement->x;
-		linkedList = removeFromList(linkedList, minElement);
+		// LinkedList *minElement = NULL, *curElement;
+		// for (curElement = linkedList; curElement != NULL; curElement = curElement->next) {
+		// 	if (minElement == NULL || 
+		// 		graph[curElement->y][curElement->x] < graph[minElement->y][minElement->x]){
+		// 		minElement = curElement;
+		// 	}
+		// }
+		isPinned[linkedList->y][linkedList->x] = 1;
+		y = linkedList->y;
+		x = linkedList->x;
+		linkedList = removeFromList(linkedList, linkedList);
 	}
 
 	printf("%d\n", graph[endY][endX]);
