@@ -3,5 +3,8 @@
 *.out
 *.o
 
+# Txt's for input
+*.txt
+
 # Debug compiled on Mac
 *.dSYM
