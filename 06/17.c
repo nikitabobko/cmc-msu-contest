@@ -8,7 +8,6 @@ struct TreeNode {
 	int key;
 	int data;
 	int height;
-	struct TreeNode *parent;
 	struct TreeNode *left;
 	struct TreeNode *right;
 };
@@ -18,8 +17,7 @@ AvlTree *nextNodeByKey(AvlTree *node);
 AvlTree *findNode(AvlTree *tree, int key);
 AvlTree *findMinNode(AvlTree *node);
 AvlTree *removeNode(AvlTree **tree, int key);
-void fillNode(AvlTree *node, int key, int data, int height, AvlTree *parent, AvlTree *left, 
-	AvlTree *right);
+void fillNode(AvlTree *node, int key, int data, int height, AvlTree *left, AvlTree *right);
 int inline getAvlTreeHeight(AvlTree *tree);
 void rotateR(AvlTree **tree);
 void rotateL(AvlTree **tree);
@@ -44,21 +42,8 @@ AvlTree *findNode(AvlTree *tree, int key) {
 void rotateR(AvlTree **tree) {
 	if ((*tree) == NULL || (*tree)->left == NULL) return;
 	AvlTree *left = (*tree)->left;
-	
 	(*tree)->left = left->right;
-	if (left->right != NULL) left->right->parent = (*tree);
-
-	left->parent = (*tree)->parent;
-	if ((*tree)->parent != NULL) {
-		if ((*tree)->parent->left == (*tree)) {
-			(*tree)->parent->left = left;
-		} else {
-			(*tree)->parent->right = left;
-		}
-	}
-
 	left->right = (*tree);
-	(*tree)->parent = left;
 
 	// Height recalculating
 	left->height = max(getAvlTreeHeight(left->right), 
@@ -72,21 +57,8 @@ void rotateR(AvlTree **tree) {
 void rotateL(AvlTree **tree) {
 	if ((*tree) == NULL || (*tree)->right == NULL) return;
 	AvlTree *right = (*tree)->right;
-
 	(*tree)->right = right->left;
-	if (right->left != NULL) right->left->parent = (*tree);
-
-	right->parent = (*tree)->parent;
-	if ((*tree)->parent != NULL) {
-		if ((*tree)->parent->left == (*tree)) {
-			(*tree)->parent->left = right;
-		} else {
-			(*tree)->parent->right = right;
-		}
-	}
-
 	right->left = (*tree);
-	(*tree)->parent = right;
 
 	// Height recalculating
 	right->height = max(getAvlTreeHeight(right->left), 
@@ -101,12 +73,10 @@ int inline getAvlTreeHeight(AvlTree *tree) {
 	return tree == NULL ? 0 : tree->height;
 }
 
-void fillNode(AvlTree *node, int key, int data, int height, AvlTree *parent, AvlTree *left, 
-		AvlTree *right) {
+void fillNode(AvlTree *node, int key, int data, int height, AvlTree *left, AvlTree *right) {
 	node->key = key;
 	node->data = data;
 	node->height = height;
-	node->parent = parent;
 	node->left = left;
 	node->right = right;
 }
@@ -122,13 +92,13 @@ AvlTree *findMinNode(AvlTree *node) {
 void addNode(AvlTree **tree, int key, int data) {
 	if ((*tree) == NULL) {
 		(*tree) = malloc(sizeof(AvlTree));
-		fillNode((*tree), key, data, 1, NULL, NULL, NULL);
+		fillNode((*tree), key, data, 1, NULL, NULL);
 		return;
 	}
 	if (key < (*tree)->key) {
 		if ((*tree)->left == NULL) {
 			(*tree)->left = malloc(sizeof(AvlTree));
-			fillNode((*tree)->left, key, data, 1, (*tree), NULL, NULL);
+			fillNode((*tree)->left, key, data, 1, NULL, NULL);
 		} else addNode(&((*tree)->left), key, data);
 		// if (getAvlTreeHeight((*tree)->left) - getAvlTreeHeight((*tree)->right) == 2) {
 		// 	if (key < (*tree)->left->key) {
@@ -141,7 +111,7 @@ void addNode(AvlTree **tree, int key, int data) {
 	} else {	// key > (*tree)->key
 		if ((*tree)->right == NULL) {
 			(*tree)->right = malloc(sizeof(AvlTree));
-			fillNode((*tree)->right, key, data, 1, (*tree), NULL, NULL);
+			fillNode((*tree)->right, key, data, 1, NULL, NULL);
 		} else addNode(&((*tree)->right), key, data);
 		// if (getAvlTreeHeight((*tree)->right) - getAvlTreeHeight((*tree)->left) == 2) {
 		// 	if (key > (*tree)->right->key) {
@@ -184,7 +154,7 @@ AvlTree *removeNode(AvlTree **tree, int key) {
 		if ((*tree)->left == NULL || (*tree)->right == NULL) {
 
 		} else {
-			
+
 		}	
 
 		// AvlTree *node = *tree;
