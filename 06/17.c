@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 typedef struct TreeNode AvlTree;
 
@@ -13,18 +14,38 @@ struct TreeNode {
 };
 
 void addNode(AvlTree **tree, int key, int data);
-AvlTree *nextNodeByKey(AvlTree *node);
 AvlTree *findNode(AvlTree *tree, int key);
-AvlTree *findMinNode(AvlTree *node);
 AvlTree *removeNode(AvlTree **tree, int key);
 void fillNode(AvlTree *node, int key, int data, int height, AvlTree *left, AvlTree *right);
-int inline getAvlTreeHeight(AvlTree *tree);
+inline int getAvlTreeHeight(AvlTree *tree);
 void rotateR(AvlTree **tree);
 void rotateL(AvlTree **tree);
-int inline max(int a, int b);
+inline int max(int a, int b);
 void ballance(AvlTree **tree);
+void swapKeysAndData(AvlTree *a, AvlTree *b);
+void clearTree(AvlTree *tree);
 
-int inline max(int a, int b) {
+void clearTree(AvlTree *tree) {
+	if (tree->left != NULL) {
+		clearTree(tree->left);
+	}
+	if (tree->right != NULL) {
+		clearTree(tree->right);
+	}
+	free(tree);
+}
+
+void swapKeysAndData(AvlTree *a, AvlTree *b) {
+	if (a == NULL || b == NULL) return;
+	int keyA = a->key;
+	int dataA = a->data;
+	a->key = b->key;
+	a->data = b->data;
+	b->key = keyA;
+	b->data = dataA;
+}
+
+inline int max(int a, int b) {
 	return a > b ? a : b;
 }
 
@@ -69,7 +90,7 @@ void rotateL(AvlTree **tree) {
 	*tree = right;
 }
 
-int inline getAvlTreeHeight(AvlTree *tree) {
+inline int getAvlTreeHeight(AvlTree *tree) {
 	return tree == NULL ? 0 : tree->height;
 }
 
@@ -81,13 +102,13 @@ void fillNode(AvlTree *node, int key, int data, int height, AvlTree *left, AvlTr
 	node->right = right;
 }
 
-AvlTree *findMinNode(AvlTree *node) {
-	if (node == NULL) return NULL;
-	while (node->left != NULL) {
-		node = node->left;
-	}
-	return node;
-}
+// AvlTree *findMinNode(AvlTree *node) {
+// 	if (node == NULL) return NULL;
+// 	while (node->left != NULL) {
+// 		node = node->left;
+// 	}
+// 	return node;
+// }
 
 void addNode(AvlTree **tree, int key, int data) {
 	if ((*tree) == NULL) {
@@ -95,7 +116,10 @@ void addNode(AvlTree **tree, int key, int data) {
 		fillNode((*tree), key, data, 1, NULL, NULL);
 		return;
 	}
-	if (key < (*tree)->key) {
+	if ((*tree)->key == key) {
+		(*tree)->data = data;
+		return;
+	} else if (key < (*tree)->key) {
 		if ((*tree)->left == NULL) {
 			(*tree)->left = malloc(sizeof(AvlTree));
 			fillNode((*tree)->left, key, data, 1, NULL, NULL);
@@ -148,40 +172,111 @@ void ballance(AvlTree **tree) {
 	}
 }
 
-AvlTree *removeNode(AvlTree **tree, int key) {
-	if ((*tree) == NULL) return NULL;
-	if ((*tree)->key == key) {
-		if ((*tree)->left == NULL || (*tree)->right == NULL) {
-
-		} else {
-
-		}	
-
-		// AvlTree *node = *tree;
-		// *tree = NULL;
-		// return node;
+AvlTree *findAboveMinNode(AvlTree *node) {
+	if (node == NULL || node->left == NULL) return NULL;
+	while (node->left->left != NULL) {
+		node = node->left;
 	}
-	AvlTree *node;
-	if (key < (*tree)->key) {
-		if ((*tree)->left == NULL) return NULL;
-		node = removeNode(&((*tree)->left), key);
-	} else {
-		if ((*tree)->right == NULL) return NULL;
-		node = removeNode(&((*tree)->right), key);
-	}
-	ballance(tree);
 	return node;
 }
 
-AvlTree *nextNodeByKey(AvlTree *node) {
-	if (node == NULL) return NULL;
-	if (node->right != NULL) {
-		return findMinNode(node->right);
+AvlTree *removeNode(AvlTree **tree, int key) {
+	if ((*tree) == NULL) return NULL;
+	AvlTree *removedNode;
+	if ((*tree)->key == key) {
+		removedNode = *tree;
+		if ((*tree)->left == NULL || (*tree)->right == NULL) {
+			*tree = ((*tree)->left == NULL ? (*tree)->right : (*tree)->left);
+			return removedNode;
+		} else {
+			if ((*tree)->right->left == NULL) {
+				(*tree)->right->left = (*tree)->left;
+				*tree = (*tree)->right;
+				return removedNode;
+			} else {
+				AvlTree *aboveNextByKeyNode = findAboveMinNode((*tree)->right);
+				AvlTree *nextByKeyNode = aboveNextByKeyNode->left;
+				aboveNextByKeyNode->left = nextByKeyNode->right;
+				swapKeysAndData(nextByKeyNode, (*tree));
+				return nextByKeyNode;
+			}
+		}
 	}
-
+	if (key < (*tree)->key) {
+		AvlTree *left = (*tree)->left;
+		if (left == NULL) return NULL;
+		if (left->key == key) {
+			if (left->left == NULL || left->right == NULL) {
+				removedNode = left;
+				(*tree)->left = (left->left == NULL ? left->right : left->left);
+			} else {
+				if (left->right->left == NULL) {
+					left->right->left = left->left;
+					(*tree)->left = left->right;
+					removedNode = left;
+				} else {
+					AvlTree *aboveNextByKeyNode = findAboveMinNode(left->right);
+					AvlTree *nextByKeyNode = aboveNextByKeyNode->left;
+					aboveNextByKeyNode->left = nextByKeyNode->right;
+					swapKeysAndData(nextByKeyNode, left);
+					removedNode = nextByKeyNode;
+				}
+			}
+		} else removedNode = removeNode(&left, key);
+	} else {
+		AvlTree *right = (*tree)->right;
+		if (right == NULL) return NULL;
+		if (right->key == key) {
+			if (right->left == NULL || right->right == NULL) {
+				removedNode = right;
+				(*tree)->right = (right->left == NULL ? right->right : right->left);
+			} else {
+				if (right->right->left == NULL) {
+					right->right->left = right->left;
+					(*tree)->right = right->right;
+					removedNode = right;
+				} else {
+					AvlTree *aboveNextByKeyNode = findAboveMinNode(right->right);
+					AvlTree *nextByKeyNode = aboveNextByKeyNode->left;
+					aboveNextByKeyNode->left = nextByKeyNode->right;
+					swapKeysAndData(nextByKeyNode, right);
+					removedNode = nextByKeyNode;
+				}
+			}
+		} else removedNode = removeNode(&right, key);
+	}
+	ballance(tree);
+	(*tree)->height = max(getAvlTreeHeight((*tree)->right), 
+		getAvlTreeHeight((*tree)->left)) + 1;	
+	return removedNode;
 }
 
 int main(void) {
-	
+	AvlTree *tree = NULL;
+	while(1) {
+		char command[2];
+		scanf("%s", command);
+		if (command[0] == 'F') break; 
+		int key, data;
+		AvlTree *foundNode = NULL;
+		scanf("%d", &key);
+		switch (command[0]) {
+			case 'A':	// Add
+				scanf("%d", &data);
+				addNode(&tree, key, data);
+				break;
+			case 'S':	// Search
+				foundNode = findNode(tree, key);
+				if (foundNode != NULL) 
+					printf("%d %d\n", key, foundNode->data);
+				break;
+			case 'D':	// Delete
+				free(removeNode(&tree, key));
+				break;
+			default:
+				assert(0);
+		}
+	}
+	clearTree(tree);
 	return 0;
 }
