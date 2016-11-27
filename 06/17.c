@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <assert.h>
 
 typedef struct TreeNode AvlTree;
@@ -17,15 +16,16 @@ void addNode(AvlTree **tree, int key, int data);
 AvlTree *findNode(AvlTree *tree, int key);
 AvlTree *removeNode(AvlTree **tree, int key);
 void fillNode(AvlTree *node, int key, int data, int height, AvlTree *left, AvlTree *right);
-inline int getAvlTreeHeight(AvlTree *tree);
+int getAvlTreeHeight(AvlTree *tree);
 void rotateR(AvlTree **tree);
 void rotateL(AvlTree **tree);
-inline int max(int a, int b);
+int max(int a, int b);
 void ballance(AvlTree **tree);
 void swapKeysAndData(AvlTree *a, AvlTree *b);
 void clearTree(AvlTree *tree);
 
 void clearTree(AvlTree *tree) {
+	if (tree == NULL) return;
 	if (tree->left != NULL) {
 		clearTree(tree->left);
 	}
@@ -45,7 +45,7 @@ void swapKeysAndData(AvlTree *a, AvlTree *b) {
 	b->data = dataA;
 }
 
-inline int max(int a, int b) {
+int max(int a, int b) {
 	return a > b ? a : b;
 }
 
@@ -90,7 +90,7 @@ void rotateL(AvlTree **tree) {
 	*tree = right;
 }
 
-inline int getAvlTreeHeight(AvlTree *tree) {
+int getAvlTreeHeight(AvlTree *tree) {
 	return tree == NULL ? 0 : tree->height;
 }
 
@@ -251,6 +251,16 @@ AvlTree *removeNode(AvlTree **tree, int key) {
 	return removedNode;
 }
 
+void printAll(AvlTree *tree, int index) {
+	if (tree->left != NULL) {
+		printAll(tree->left, index+1);
+	}
+	printf("(i:%d, %d) ", index, tree->key);
+	if (tree->right != NULL) {
+		printAll(tree->right, index+1);
+	}
+}
+
 int main(void) {
 	AvlTree *tree = NULL;
 	while(1) {
@@ -272,6 +282,11 @@ int main(void) {
 				break;
 			case 'D':	// Delete
 				free(removeNode(&tree, key));
+				break;
+			case 'Z':
+				printAll(tree, 0);
+				printf("\n");
+				printf("\n");
 				break;
 			default:
 				assert(0);
