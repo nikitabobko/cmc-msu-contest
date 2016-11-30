@@ -107,19 +107,9 @@ void addNode(AvlTree **tree, int key, int data) {
 		(*tree)->data = data;
 		return;
 	} else if (key < (*tree)->key) {
-		if ((*tree)->left == NULL) {
-			(*tree)->left = malloc(sizeof(AvlTree));
-			fillNode((*tree)->left, key, data, 1, NULL, NULL);
-		} else {
 			addNode(&((*tree)->left), key, data);
-		}
 	} else {	// key > (*tree)->key
-		if ((*tree)->right == NULL) {
-			(*tree)->right = malloc(sizeof(AvlTree));
-			fillNode((*tree)->right, key, data, 1, NULL, NULL);
-		} else {
-			addNode(&((*tree)->right), key, data);	
-		}
+		addNode(&((*tree)->right), key, data);	
 	}
 	ballance(tree);
 	(*tree)->height = getMaxHeight((*tree)->right, (*tree)->left) + 1;
@@ -197,59 +187,9 @@ AvlTree *removeNode(AvlTree **tree, int key) {
 			}
 		}
 	} else if (key < (*tree)->key) {
-		AvlTree *left = (*tree)->left;
-		if (left == NULL) return NULL;
-		if (left->key == key) {
-			if (left->left == NULL || left->right == NULL) {
-				removedNode = left;
-				(*tree)->left = (left->left == NULL ? left->right : left->left);
-			} else {
-				if (left->right->left == NULL) {
-					left->right->left = left->left;
-					(*tree)->left = left->right;
-					// Height recalculation
-					(*tree)->left->height = getMaxHeight((*tree)->left->left, (*tree)->left->right) + 1;
-					removedNode = left;
-				} else {
-					AvlTree *aboveNextByKeyNode = findAboveMinNode(left->right);
-					AvlTree *nextByKeyNode = aboveNextByKeyNode->left;
-					aboveNextByKeyNode->left = nextByKeyNode->right;
-					swapKeysAndData(nextByKeyNode, left);
-					// Height recalculation
-					recalculateHeight(left->right->left);
-					left->right->height = getMaxHeight(left->right->left, left->right->right) + 1;
-					left->height = getMaxHeight(left->left, left->right) + 1;
-					removedNode = nextByKeyNode;
-				}
-			}
-		} else removedNode = removeNode(&left, key);
+		removedNode = removeNode(&((*tree)->left), key);
 	} else {
-		AvlTree *right = (*tree)->right;
-		if (right == NULL) return NULL;
-		if (right->key == key) {
-			if (right->left == NULL || right->right == NULL) {
-				removedNode = right;
-				(*tree)->right = (right->left == NULL ? right->right : right->left);
-			} else {
-				if (right->right->left == NULL) {
-					right->right->left = right->left;
-					(*tree)->right = right->right;
-					// Height recalculation
-					(*tree)->right->height = getMaxHeight((*tree)->right->left, (*tree)->right->right) + 1;
-					removedNode = right;
-				} else {
-					AvlTree *aboveNextByKeyNode = findAboveMinNode(right->right);
-					AvlTree *nextByKeyNode = aboveNextByKeyNode->left;
-					aboveNextByKeyNode->left = nextByKeyNode->right;
-					swapKeysAndData(nextByKeyNode, right);
-					// Height recalculation
-					recalculateHeight(right->right->left);
-					right->right->height = getMaxHeight(right->right->left, right->right->right) + 1;
-					right->height = getMaxHeight(right->left, right->right) + 1;
-					removedNode = nextByKeyNode;
-				}
-			}
-		} else removedNode = removeNode(&right, key);
+		removedNode = removeNode(&((*tree)->right), key);
 	}
 	ballance(tree);
 	(*tree)->height = getMaxHeight((*tree)->right, (*tree)->left) + 1;
