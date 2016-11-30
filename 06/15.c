@@ -20,7 +20,6 @@ void fillNode(AvlTree *node, char *name, unsigned ip, int height, AvlTree *left,
 void rotateR(AvlTree **tree);
 void rotateL(AvlTree **tree);
 void ballance(AvlTree **tree);
-void swapNamesAndIp(AvlTree *a, AvlTree *b);
 void clearTree(AvlTree *tree);
 int getMaxHeight(AvlTree *a, AvlTree *b);
 int getAvlTreeHeight(AvlTree *tree);
@@ -50,16 +49,6 @@ void clearTree(AvlTree *tree) {
 	}
 	free(tree->name);
 	free(tree);
-}
-
-void swapNamesAndIp(AvlTree *a, AvlTree *b) {
-	if (a == NULL || b == NULL) return;
-	char *nameA = a->name;
-	int ipA = a->ip;
-	a->name = b->name;
-	a->ip = b->ip;
-	b->name = nameA;
-	b->ip = ipA;
 }
 
 AvlTree *findNode(AvlTree *tree, char* name) {
@@ -185,6 +174,7 @@ int main(void) {
 		else fprintf(out, "-1\n");
 	}
 	free(name);
+	clearTree(tree);
 
 	fclose(out);
 	fclose(in);	
