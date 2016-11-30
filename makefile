@@ -1,4 +1,4 @@
-name = ./06/02.c
+name = ./06/17.c
 
 a.out: .FORCE
 
