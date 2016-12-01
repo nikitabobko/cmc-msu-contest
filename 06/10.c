@@ -3,7 +3,8 @@
 
 struct structList {
 	int value;
-	struct structList* next;
+	struct structList *next;
+	struct structList *previous;
 };
 
 typedef struct structList List;
@@ -18,22 +19,8 @@ void add(List **list, int value) {
 	List *newHead = malloc(sizeof(List));
 	newHead->value = value;
 	newHead->next = *list;
-	*list = newHead;
-}
-
-void operation(List **list, int a, int b) {
-	if (a == (*list)->value) return;
-	List *start = *list;
-	while (start->next->value != a) {
-		start = start->next;
-	}
-	List *end = start->next;
-	while (end->value != b) {
-		end = end->next;
-	}
-	List *newHead = start->next;
-	start->next = end->next;
-	end->next = *list;
+	newHead->previous = NULL;
+	(*list)->previous = newHead;
 	*list = newHead;
 }
 
@@ -44,13 +31,26 @@ int main(void) {
 	List *list = NULL;
 	int n, m;
 	fscanf(in, "%d %d", &n, &m);
+	List **listArr = malloc(n * sizeof(List *));
 	for (int i = n; i >= 1; i--) {
 		add(&list, i);
+		listArr[i - 1] = list;
 	}
 	for (int i = 0; i < m; i++) {
 		int a, b;
 		fscanf(in, "%d %d", &a, &b);
-		operation(&list, a, b);
+		a--;
+		b--;
+		if (listArr[a]->previous == NULL) continue;
+		listArr[a]->previous->next = listArr[b]->next;
+		if (listArr[b]->next != NULL) 
+			listArr[b]->next->previous = listArr[a]->previous;
+
+		listArr[b]->next = list;
+		list->previous = listArr[b];
+
+		listArr[a]->previous = NULL;
+		list = listArr[a];
 	}
 	while (list != NULL) {
 		fprintf(out, "%d ", list->value);
