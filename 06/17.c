@@ -8,8 +8,8 @@ struct TreeNode {
 	int key;
 	int data;
 	int height;
-	struct TreeNode *left;
-	struct TreeNode *right;
+	AvlTree *left;
+	AvlTree *right;
 };
 
 void addNode(AvlTree **tree, int key, int data);
