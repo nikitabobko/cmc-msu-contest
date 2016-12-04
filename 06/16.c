@@ -2,71 +2,73 @@
 #include <stdlib.h>
 
 typedef struct structList List;
+typedef struct structListList ListList;
+
+struct structListList {
+	List *list;
+	ListList *next;
+};
 
 struct structList {
 	int val;
-	// Inverse index
-	int invIndex;
 	List *next;
-	List *previous;
 };
 
-void add(List **list, int val, int invIndex) {
-	if (list == NULL) return;
-	List *oldHead = *list;
-	*list = malloc(sizeof(List));
-	(*list)->val = val;
-	(*list)->invIndex = invIndex;
-	(*list)->next = oldHead;
-	if (oldHead != NULL) oldHead->previous = *list;
-	(*list)->previous = NULL;
+List *merge(List *l1, List *l2) {
+	if (l1 == NULL) return l2;
+	if (l2 == NULL) return l1;
+	List *cur1 = l1, *cur2 = l2, *newHead = NULL, *end = NULL;
+	while (cur1 != NULL && cur2 != NULL) {
+		List **a = newHead == NULL ? &newHead : &(end->next);
+		*a = cur1->val < cur2->val ? cur1 : cur2;
+		end = *a;
+		if (cur1->val < cur2->val) cur1 = cur1->next;
+		else cur2 = cur2->next;
+		end->next = NULL;
+	}
+	end->next = cur1 != NULL ? cur1 : cur2;
+	return newHead;
 }
 
-void quickSort(List *left, List *right) {
-	if (left == NULL || right == NULL || left < right) return;
-	int pivot = right->val;
-	List *i = left, *j = right;
-	do {
-		while (i->val < pivot && i != right) {
-			i = i->next;
-		}
-		while (j->val > pivot && j != left) {
-			j = j->previous;
-		}
-		if (i->invIndex >= j->invIndex) {
-			int t = i->val;
-			i->val = j->val;
-			j->val = t;
-			i = i->next;
-			j = j->previous;
-		}
-	} while (i != NULL && j != NULL && i->invIndex > j->invIndex);
-	if (i != right) {
-		quickSort(i, right);
-	}
-	if (j != left) {
-		quickSort(left, j);
-	}
+void add(ListList **ll, List *l) {
+	if (ll == NULL) return;
+	ListList *oldHead = *ll;
+	*ll = malloc(sizeof(ListList));
+	(*ll)->list = l;
+	(*ll)->next = oldHead;
 }
 
 int main(void) {
 	FILE *in = fopen("input.txt", "r");
 	FILE *out = fopen("output.txt", "w");
 
-	List *left = NULL;
-	List *right = NULL;
-	for(int i = 0; 1; i++) { 
+	ListList *ll = NULL;
+	while (1) { 
 		int curNum = 0;
 		if (fscanf(in, "%d", &curNum) == EOF) break;
-		add(&left, curNum, i);
-		if (right == NULL) right = left;
+		List *l = malloc(sizeof(List));
+		l->val = curNum;
+		l->next = NULL;
+		add(&ll, l);
 	}
-	quickSort(left, right);
-	while (left != NULL) {
-		fprintf(out, "%d ", left->val);
-		right = left;
-		left = left->next;
-		free(right);
+	// Merge sort
+	while (ll->next != NULL) {
+		ListList *cur = ll;
+		while (cur != NULL && cur->next != NULL) {
+			ListList *next = cur->next;
+			cur->list = merge(cur->list, next->list);
+			cur->next = next->next;
+			cur = cur->next;
+			free(next);
+		}
+	}
+	List *l = ll->list;
+	// Print
+	while (l != NULL) {
+		fprintf(out, "%d ", l->val);
+		List *temp = l;
+		l = l->next;
+		free(temp);
 	}
 
 	fclose(out);
