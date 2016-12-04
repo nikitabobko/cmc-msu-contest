@@ -172,7 +172,7 @@ AvlTree *removeNode(AvlTree **tree, int key) {
 			if ((*tree)->right->left == NULL) {
 				(*tree)->right->left = (*tree)->left;
 				// Height recalculation
-				(*tree)->right->height = getMaxHeight((*tree)->right, (*tree)->right) + 1;
+				(*tree)->right->height = getMaxHeight((*tree)->left, (*tree)->right) + 1;
 				*tree = (*tree)->right;
 			} else {
 				AvlTree *aboveNextByKeyNode = findAboveMinNode((*tree)->right);
@@ -196,16 +196,6 @@ AvlTree *removeNode(AvlTree **tree, int key) {
 	return removedNode;
 }
 
-void printAll(AvlTree *tree) {
-	if (tree->left != NULL) {
-		printAll(tree->left);
-	}
-	printf("(h:%d, %d) ", tree->height, tree->key);
-	if (tree->right != NULL) {
-		printAll(tree->right);
-	}
-}
-
 int main(void) {
 	AvlTree *tree = NULL;
 	while(1) {
@@ -227,11 +217,6 @@ int main(void) {
 				break;
 			case 'D':	// Delete
 				free(removeNode(&tree, key));
-				break;
-			case 'Z':
-				printAll(tree);
-				printf("\n");
-				printf("\n");
 				break;
 			default:
 				assert(0);
