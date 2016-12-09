@@ -130,5 +130,6 @@ int main(void) {
 		}
 	}
 	deallocateMatrix(matrix, n);
+	free(binHeap);
 	return 0;
 }
