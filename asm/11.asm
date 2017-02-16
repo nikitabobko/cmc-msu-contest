@@ -12,13 +12,13 @@ section .text
 global CMAIN
 	
 CMAIN:
-	;GET_CHAR eax
-	;GET_DEC 4, ebx
-	mov eax, 'H'
-	mov ebx, 2
+	GET_CHAR eax
+	GET_DEC 4, ebx
 
 	mov [originalWidth], eax
 	mov [originalHeight], ebx
+
+
 
 	imul eax, -1
 	add eax, 'H' + 'A'
