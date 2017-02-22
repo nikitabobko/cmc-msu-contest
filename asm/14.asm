@@ -30,10 +30,10 @@ CMAIN:
     mov ecx, eax
     
     mov esi, 3
+    xor edx, edx
     div esi
     add eax, 1
     mul ebx
-    
     sub ecx, eax
     
     PRINT_DEC 4, ecx
