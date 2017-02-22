@@ -3,6 +3,7 @@
 section .text
 global CMAIN
 CMAIN:
+    mov ebp, esp; for correct debugging
     GET_UDEC 4, eax
     GET_UDEC 4, ebx
     mul ebx
@@ -20,7 +21,7 @@ CMAIN:
     GET_UDEC 4, ecx
     imul ebx, 60
     add ebx, ecx
-    sub ebx, 359
+    sub ebx, 360
     
     sar ebx, 0x1f
     and ebx, 0x1
