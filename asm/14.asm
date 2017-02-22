@@ -7,8 +7,11 @@ CMAIN:
     GET_UDEC 4, eax
     GET_UDEC 4, ebx
     mul ebx
+    mov ecx, edx
     GET_UDEC 4, ebx
     mul ebx
+    imul ecx, ebx
+    add edx, ecx
     GET_UDEC 4, ebx
     xor edx, edx
     div ebx
@@ -29,6 +32,7 @@ CMAIN:
     
     mov ecx, eax
     
+    sub eax, 1
     mov esi, 3
     xor edx, edx
     div esi
