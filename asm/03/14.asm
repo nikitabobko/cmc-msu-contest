@@ -10,28 +10,79 @@ CMAIN:
     GET_UDEC 4, esi
 
     mov eax, ebx    
-    mov ecx, 0x20
+    mov ecx, 32
 .loop:
     shr eax, 1
     loopnz .loop
     
-    ; edi = number of bits in number
-    mov edi, 0x20
+    ; edi = n-1, n - number of bits in number
+    mov edi, 32
     sub edi, ecx 
+    dec edi
     
     ; eax = combination(n-1, k+1) = combination(n-1, k) + 
     ; combination(n-2,k) + ... + combination(n-(n-k), k)
     inc  esi
     push esi
     dec  esi
-    dec  edi
     push edi
-    inc  edi
     call combination
+    add esp, 8
+
+    ; [ebp-4] = eax = combination(n-1, k+1)
+    push eax
     
-    mov ecx, eax
+    xor eax, eax
     
+    mov ecx, edi
+    jecxz .endloop1
+.loop1:
+    mov edx, ebx
+
+    dec ecx
+    shr edx, cl
+    inc ecx
+
+    ; if(edx != 0)
+    and edx, 0x1
+    jz .else 
+    push eax
+    push ecx
+
+    ; eax = combination(ecx-1, esi-eax-1), esi = k, eax = number of zeros
+    dec esi
+    sub esi, eax
+    push esi
+    add esi, eax
+    inc esi
+    dec ecx
+    push ecx
+    inc ecx
+    call combination
+    add esp, 8
     
+    add eax, [ebp-4]
+    mov [ebp-4], eax
+    
+    pop ecx
+    pop eax
+    jmp .endelse
+.else:
+    inc eax
+.endelse:
+    loop .loop1  
+.endloop1:
+    
+    ; edx = almost answer
+    mov edx, [ebp-4]
+    
+    cmp eax, esi
+    jne .else1
+    inc edx
+.else1:
+
+    PRINT_DEC 4, edx
+            
     mov esp, ebp
     xor eax, eax
     ret
@@ -43,28 +94,32 @@ combination:
     mov edx, [ebp+8]
     
     cmp edx, [ebp+12]
-    jb .exit
+    jl .exit
 
-    mov edx, [ebp+8]
+    ; eax = (n-k)!
     sub edx, [ebp+12]
     mov eax, 0x1
     mov ecx, edx
-    sub ecx, 2
+    dec ecx
     js .endloop0
+    jecxz .endloop0
 .loop0:
     mul edx
     dec edx
     loop .loop0
 .endloop0:
+
     ; [ebp+4] = (n-k)!
     push eax
     
     ; eax = n!/k!
     mov edx, [ebp+8]
+    mov eax, 0x1
     mov ecx, edx
     sub ecx, [ebp+12]
-    mov eax, 0x1
+    dec ecx
     js .endloop
+    jecxz .endloop
 .loop:
     mul edx
     dec edx
