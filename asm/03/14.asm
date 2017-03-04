@@ -4,37 +4,52 @@ section .text
 global CMAIN
 CMAIN:
     mov ebp, esp
-    GET_UDEC 4, ecx
-    GET_UDEC 4, ebx
     
-    xor edi, edi
+    ret
     
-    .loop:
-        mov eax, ecx
     
-        xor esi, esi
-        .1:
-            test eax, eax
-            jz .end
+global combination
+; int combination(int n, int k) = n!/(k!(n-k)!)
+combination:
+    push ebp
+    mov ebp, esp
+    mov edx, [ebp+8]
     
-            mov edx, eax
-            and edx, 0x1
-            xor edx, 0x1
-            add esi, edx
-            
-            shr eax, 1
+    cmp edx, [esp+12]
+    jb .exit
+
+    mov edx, [ebp+8]
+    sub edx, [ebp+12]
+    mov eax, 0x1
+    mov ecx, edx
+    sub ecx, 2
+    js .endloop1
+.loop0:
+    mul edx
+    dec edx
+    loop .loop1
+.endloop0:
+    ; [ebp+4] = (n-k)!
+    push eax
     
-            jmp .1
-        .end:
-        
-        cmp esi, ebx
-        jne .2
-            inc edi
-        .2:
-    
+    mov edx, [ebp+8]
+    mov ecx, edx
+    sub ecx, [ebp+12]
+    mov eax, 0x1
+    js .endloop
+.loop:
+    mul edx
+    dec edx
     loop .loop
+.endloop:
     
-    PRINT_DEC 4, edi
+    ; ecx = (n-k)!
+    pop ecx
+    xor edx, edx
+    div ecx
+
+    ret
     
+.exit:
     xor eax, eax
     ret
