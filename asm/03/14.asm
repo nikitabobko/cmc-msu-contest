@@ -104,7 +104,13 @@ combination:
     js .endloop0
     jecxz .endloop0
 .loop0:
-    imul eax, edx
+    push ecx
+    push edx
+    mov ecx, edx
+    xor edx, edx
+    mul ecx
+    pop edx
+    pop ecx
     dec edx
     loop .loop0
 .endloop0:
@@ -120,7 +126,13 @@ combination:
     js .endloop
     jecxz .endloop
 .loop:
-    imul eax, edx
+    push edx
+    push ecx
+    mov ecx, edx
+    xor edx, edx
+    mul ecx
+    pop ecx
+    pop edx
     dec edx
     loop .loop
 .endloop:
