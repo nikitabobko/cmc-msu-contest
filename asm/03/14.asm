@@ -104,7 +104,7 @@ combination:
     js .endloop0
     jecxz .endloop0
 .loop0:
-    mul edx
+    imul eax, edx
     dec edx
     loop .loop0
 .endloop0:
@@ -117,11 +117,10 @@ combination:
     mov eax, 0x1
     mov ecx, edx
     sub ecx, [ebp+12]
-    dec ecx
     js .endloop
     jecxz .endloop
 .loop:
-    mul edx
+    imul eax, edx
     dec edx
     loop .loop
 .endloop:
