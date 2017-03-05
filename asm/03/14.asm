@@ -35,7 +35,7 @@ CMAIN:
     inc edi
     inc esi
 
-    ; eax = triangle + (n-2)(n-1)/2 + k - 1
+    ; eax = (n-2)(n-1)/2 + k - 1
     mov eax, esi
     sub eax, 2
     mov ecx, esi
