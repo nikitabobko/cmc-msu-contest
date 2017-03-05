@@ -1,11 +1,60 @@
 %include 'io.inc'
 
+section .bss
+    triangle resw 406 ; 1+2+...+28
+
 section .text
 global CMAIN
 global combination
 CMAIN:
     mov ebp, esp
     
+    ; fill Pascal's triangle
+    mov esi, 2
+.nloop:
+    mov edi, 1
+.kloop:
+    ; ebx = combination(n-1, k)
+    dec esi
+    push edi
+    push esi
+    call combination
+    add esp, 8
+    mov ebx, eax
+
+    ; eax = combination(n-1, k-1)
+    dec edi
+    push edi
+    push esi
+    call combination
+    add esp, 8
+
+    add ebx, eax
+
+    ; return esi and edi their old values
+    inc edi
+    inc esi
+
+    ; eax = triangle + (n-2)(n-1)/2 + k - 1
+    mov eax, esi
+    sub eax, 2
+    mov ecx, esi
+    sub ecx, 1
+    mul ecx
+    shr eax, 1
+    add eax, edi
+    dec eax
+
+    mov [triangle+4*eax], ebx
+
+    inc edi
+    cmp edi, esi
+    jb .kloop 
+
+    inc esi
+    cmp esi, 30
+    jb .nloop
+
     GET_UDEC 4, ebx
     GET_UDEC 4, esi
 
@@ -14,12 +63,12 @@ CMAIN:
 .loop:
     shr eax, 1
     loopnz .loop
-    
+
     ; edi = n-1, n - number of bits in number
     mov edi, 32
     sub edi, ecx 
     dec edi
-    
+
     ; eax = combination(n-1, k+1) = combination(n-1, k) + 
     ; combination(n-2,k) + ... + combination(n-(n-k), k)
     inc  esi
@@ -31,9 +80,9 @@ CMAIN:
 
     ; [ebp-4] = eax = combination(n-1, k+1)
     push eax
-    
+
     xor eax, eax
-    
+
     mov ecx, edi
     jecxz .endloop1
 .loop1:
@@ -63,7 +112,7 @@ CMAIN:
     
     add eax, [ebp-4]
     mov [ebp-4], eax
-    
+
     pop ecx
     pop eax
     jmp .endelse
@@ -72,10 +121,10 @@ CMAIN:
 .endelse:
     loop .loop1  
 .endloop1:
-    
+
     ; edx = almost answer
     mov edx, [ebp-4]
-    
+
     cmp eax, esi
     jne .else1
     inc edx
@@ -89,62 +138,37 @@ CMAIN:
     
 ; int combination(int n, int k) = n!/(k!(n-k)!)
 combination:
-    push ebp
-    mov ebp, esp
-    mov edx, [ebp+8]
-    
-    cmp edx, [ebp+12]
-    jl .exit
+    mov eax, [esp+4]
 
-    ; eax = (n-k)!
-    sub edx, [ebp+12]
-    mov eax, 0x1
-    mov ecx, edx
-    dec ecx
-    js .endloop0
-    jecxz .endloop0
-.loop0:
-    push ecx
-    push edx
-    mov ecx, edx
-    xor edx, edx
-    mul ecx
-    pop edx
-    pop ecx
-    dec edx
-    loop .loop0
-.endloop0:
-
-    ; [ebp+4] = (n-k)!
-    push eax
-    
-    ; eax = n!/k!
-    mov edx, [ebp+8]
-    mov eax, 0x1
-    mov ecx, edx
-    sub ecx, [ebp+12]
-    js .endloop
-    jecxz .endloop
-.loop:
-    push edx
-    push ecx
-    mov ecx, edx
-    xor edx, edx
-    mul ecx
-    pop ecx
-    pop edx
-    dec edx
-    loop .loop
-.endloop:
-    
-    pop ecx ; ecx = (n-k)!
-    xor edx, edx
-    div ecx
-
-    pop ebp
+    cmp eax, [esp+8]
+    jb .zero
+    jne .else
+    mov eax, 1
     ret
-    
-.exit:
-    pop ebp
+.zero:
     xor eax, eax
     ret
+.else:
+    mov ecx, [esp+8]
+    test ecx, ecx
+    jnz .else1
+    mov eax, 1
+    ret
+.else1:
+
+    sub eax, 2
+
+    mov ecx, [esp+4]
+    sub ecx, 1
+
+    xor edx, edx
+    mul ecx
+
+    shr eax, 1
+
+    add eax, [esp+8]
+    dec eax
+
+    mov eax, [triangle+4*eax]
+    ret
+    
