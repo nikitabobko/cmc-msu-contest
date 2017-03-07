@@ -52,7 +52,7 @@ CMAIN:
     .endloop1:
     
     test ebx, ebx
-    je .else
+    jz .else ; if (ebx != 0)
         mov eax, [ebp-4]
         or dword [ebp-12], eax
         
@@ -72,4 +72,3 @@ CMAIN:
     xor eax, eax
     mov esp, ebp
     ret
-    
