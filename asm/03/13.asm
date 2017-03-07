@@ -13,14 +13,18 @@ CMAIN:
     
     jecxz .endloop
     .loop:
-        sub esp, 4
-        GET_UDEC 4, [esp]
+        GET_UDEC 4, eax
+        push eax
         loop .loop
     .endloop:
     GET_UDEC 4, esi
     mov ecx, 32
     sub ecx, esi
     shr dword [ebp-8], cl
+    cmp ecx, 32
+    jne .endif ; if(ecx == 32)
+        mov dword [ebp-8], 0x0
+    .endif:
     mov ecx, esi
     
     xor edi, edi
