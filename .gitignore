@@ -6,5 +6,5 @@
 # Txt's for input
 *.txt
 
-# Debug compiled on Mac
+# Debug compiled on macOS
 *.dSYM
