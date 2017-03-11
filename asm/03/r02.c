@@ -29,9 +29,6 @@ int main(void) {
 	if (eax == 0xFFFFFFFF) {
 		mask = 0x80000000;
 	}
-	eax++;
-	eax >>= 1;
-	eax |= mask;
-	printf("%u\n", eax);
+	printf("%u\n", ((eax+1) >> 1) | mask);
 	return 0;
 }
