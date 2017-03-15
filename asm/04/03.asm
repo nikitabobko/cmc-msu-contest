@@ -9,18 +9,14 @@ CMAIN:
     ret
     
 F:
-    push ebp
-    mov ebp, esp
     GET_UDEC 4, eax
     cmp eax, 0
     jne .else
-        pop ebp
         ret
     .else:
     push eax
     call F
-    PRINT_DEC 4, [ebp-4]
+    pop eax
+    PRINT_DEC 4, eax
     PRINT_CHAR ' '
-    mov esp, ebp
-    pop ebp
     ret
