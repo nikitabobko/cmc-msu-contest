@@ -92,21 +92,19 @@ CMAIN:
         mov ebx, eax
         
         
-        mov eax, [r_ecx]
-        mul dword [const]
-        
-        add ebx, eax
-        mov ecx, edx
-        
         mov eax, [r_edx]
         mul dword[const1]
+        
+        add ebx, eax
+        
+        mov eax, [r_ecx]
+        mul dword [const]
         
         add eax, ebx
         ; if (CF == 1) 
         jnc .endif1
             inc edx
         .endif1:
-        add edx, ecx
         
         add eax, [q_eax]
         ; if (CF == 1)
@@ -136,12 +134,14 @@ CMAIN:
         mov ebx, edx
         
         ; Calculate ecx0
-        add ebx, [r_ecx]
+        add ebx, [q_ecx]
         mov [ecx0], ebx
 
-
-
         inc esi
+        
+        mov eax, [eax0]
+        mov edx, [edx0]
+        mov ecx, [ecx0]
         
         test ecx, ecx
         jnz .while
