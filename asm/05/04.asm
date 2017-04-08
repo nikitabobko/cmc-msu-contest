@@ -14,8 +14,7 @@ extern fopen
 extern fclose
 CMAIN:
     mov ebp, esp
-    and esp, 0xfffffff0
-    sub esp, 16
+    sub esp, 28
     
     lea esi, [ebp-4]
     
