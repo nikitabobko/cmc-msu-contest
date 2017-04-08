@@ -17,8 +17,7 @@ extern printf
 global CMAIN
 CMAIN:
     mov ebp, esp
-    and esp, 0xfffffff0
-    sub esp, 16
+    sub esp, 12
     
     ; scanf("%s %s", str1, str2);
     mov dword   [esp], mode_scan
