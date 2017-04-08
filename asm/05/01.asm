@@ -7,8 +7,8 @@ section .rodata
 
 section .text
 global CMAIN
-CEXTERN printf
-CEXTERN scanf
+extern scanf
+extern printf
 CMAIN:
     mov ebp, esp
     sub esp, 12
