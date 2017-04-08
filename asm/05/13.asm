@@ -66,11 +66,12 @@ CMAIN:
     
 ; apply(int* array, size_t length, void (*fn) (...), int n, ...)
 apply:
+    push ebp
     mov ebp, esp
-    sub esp, 12
+    sub esp, 8
     
     ; eax = n
-    mov eax, [ebp+16]
+    mov eax, [ebp+20]
     inc eax
     mov edx, eax
     ; alignment
@@ -82,7 +83,7 @@ apply:
     mov eax, esp
     
     ; edx points to the parameter after n
-    lea edx, [ebp+20]
+    lea edx, [ebp+24]
     
     ; for(ecx = 0; ecx < n; ecx++)
     xor ecx, ecx
@@ -96,7 +97,7 @@ apply:
         add edx, 4
         
         inc ecx
-        cmp ecx, [ebp+16]
+        cmp ecx, [ebp+20]
         jb .for1
     .endfor1:
     
@@ -105,23 +106,23 @@ apply:
     
     ; for(esi = 0; esi < lenght; i++)
     xor esi, esi
-    cmp esi, [ebp+8]
+    cmp esi, [ebp+12]
     jnb .endfor
     .for:
         ; eax = array[esi]
         mov eax, esi
         shl eax, 2
-        add eax, [ebp+4]
+        add eax, [ebp+8]
         mov eax, [eax] 
         
         mov [edi], eax
-        mov eax, [ebp+12]
+        mov eax, [ebp+16]
         call eax
         
         inc esi
-        cmp esi, [ebp+8]
+        cmp esi, [ebp+12]
         jb .for
     .endfor:   
     
-    mov esp, ebp
+    leave
     ret
