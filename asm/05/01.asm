@@ -11,9 +11,9 @@ CEXTERN printf
 CEXTERN scanf
 CMAIN:
     mov ebp, esp
-    and esp, 0xfffffff0
-    sub esp, 16
+    sub esp, 12
     lea ebx, [ebp-4]
+    
     mov dword   [esp], mode_scan
     mov dword [esp+4], ebx
     call scanf
