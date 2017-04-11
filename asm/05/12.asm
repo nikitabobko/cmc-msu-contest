@@ -1,7 +1,7 @@
 %include 'io.inc'
 
 section .rodata
-    fileName  db "/home/bobko/Desktop/input.bin", 0
+    fileName  db "input.bin", 0
     readMode  db "rb", 0
     intFormat db "%d ", 0
 
