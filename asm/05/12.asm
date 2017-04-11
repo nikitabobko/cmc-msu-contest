@@ -8,8 +8,6 @@ section .rodata
 section .bss
     tree          resd 30000
     removedNodes  resd 30000
-    numOfRemoved  resd 1
-    numOfElements resd 1
 
 section .text
 global CMAIN
@@ -46,12 +44,6 @@ CMAIN:
         jmp .while
     .endwhile:
     
-    mov eax, esi
-    xor edx, edx
-    mov ecx, 12
-    div ecx
-    mov dword [numOfElements], eax
-    
     xor edi, edi
     cmp edi, esi
     jnb .endfor
@@ -59,12 +51,6 @@ CMAIN:
     .for:
         mov [esp], edi
         call removeChildren
-        
-        mov eax, [numOfRemoved] 
-        inc eax
-        cmp eax, [numOfElements]
-        ; if(numOfRemoved+1 == numOfElements) break;
-        je .endfor
         
         add edi, 12
         cmp edi, esi
@@ -106,7 +92,7 @@ printTree:
     
     mov ebx, [ebp+8]
     mov eax, [tree+ebx]
-    ; print("%d", eax)
+    ; printf("%d ", eax)
     mov dword [esp], intFormat
     mov [esp+4], eax
     call printf
@@ -169,7 +155,6 @@ removeChildren:
         add esp, 4
         
         mov dword [removedNodes + edi], 1
-        inc dword [numOfRemoved]
     .endif1:
     
     ; remove right children
@@ -183,7 +168,6 @@ removeChildren:
         add esp, 4
         
         mov dword [removedNodes + edi], 1
-        inc dword [numOfRemoved]
     .endif2:
     
     ; restore ebx, esi, edi
