@@ -9,13 +9,13 @@
 section .rodata
     inFile    db "input.txt", 0
     outFile   db "output.txt", 0
-    intFormat db "%d", 0
+    intFormat db "%u", 0
     outFormat db "%d ", 0
     readMode  db "r", 10
     writeMode db "w", 10
     
 section .bss
-    arr resd 100000
+    arr resd 1000000
 
 section .text
 global CMAIN
@@ -166,6 +166,10 @@ apply:
     
     mov ecx, [eax+4]
     mov [edx+4], ecx
+    test ecx, ecx
+    je .endif2
+        mov [ecx+8], edx
+    .endif2:
     
     mov ecx, [ebp+8]
     mov [eax+4], ecx
