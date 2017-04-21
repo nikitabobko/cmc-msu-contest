@@ -3,6 +3,7 @@
 ; struct list {
 ;     int val;
 ;     list* next;
+;     list* previous
 ; }
 
 section .rodata
@@ -12,6 +13,9 @@ section .rodata
     outFormat db "%d ", 0
     readMode  db "r", 10
     writeMode db "w", 10
+    
+section .bss
+    arr resd 100000
 
 section .text
 global CMAIN
@@ -31,7 +35,7 @@ CMAIN:
     call fopen
     mov [ebp-8], eax
     
-    ; fscanf(ebp-8, "%d", ebp-4)
+    ; fscanf([ebp-8], "%d", ebp-4)
     lea eax, [ebp-4]
     mov edx, [ebp-8]
     mov [esp], edx
@@ -53,11 +57,12 @@ CMAIN:
         mov ebx, eax
         
         dec esi
+        mov [arr+4*esi], ebx
         test esi, esi
         jne .while
     .endwhile:
     
-    ; fscanf(ebp-8, "%d", ebp-4)
+    ; fscanf([ebp-8], "%d", ebp-4)
     lea eax, [ebp-4]
     mov edx, [ebp-8]
     mov [esp], edx
@@ -69,7 +74,7 @@ CMAIN:
     test esi, esi
     je .endwhile1
     .while1:
-        ; fscanf(ebp-8, "%d", ebp-4)
+        ; fscanf([ebp-8], "%d", ebp-4)
         lea eax, [ebp-4]
         mov edx, [ebp-8]
         mov [esp], edx
@@ -77,7 +82,7 @@ CMAIN:
         mov [esp+8], eax
         call fscanf
         mov edi, [ebp-4]
-        ; fscanf(ebp-8, "%d", ebp-4)
+        ; fscanf([ebp-8], "%d", ebp-4)
         call fscanf
         
         mov [esp], ebx
@@ -148,27 +153,13 @@ apply:
         ret
     .endif1:
     
-    .while:
-        mov ecx, [eax+4]
-        mov ecx, [ecx]
-        cmp ecx, edx
-        je .endwhile
-        mov eax, [eax+4]
-        jmp .while
-    .endwhile:
+    dec edx
+    mov edx, [arr+4*edx]
+    mov edx, [edx+8]
     
-    push eax
-    
-    mov edx, [ebp+16]
-    .while1:
-        mov eax, [eax+4]
-        mov ecx, [eax]
-        cmp ecx, edx
-        je .endwhile1
-        jmp .while1
-    .endwhile1:
-    
-    pop edx
+    mov eax, [ebp+16]
+    dec eax
+    mov eax, [arr+4*eax]
     
     mov ecx, [edx+4]
     push ecx
@@ -178,8 +169,11 @@ apply:
     
     mov ecx, [ebp+8]
     mov [eax+4], ecx
+    mov [ecx+8], eax
     
     pop eax
+    
+    mov dword [eax+8], 0
     
     leave
     ret
@@ -191,12 +185,17 @@ addToHead:
     mov ebp, esp
     sub esp, 8
     
-    mov dword [esp], 8
+    mov dword [esp], 12
     call malloc
     mov edx, [ebp+12]
     mov [eax], edx
     mov edx, [ebp+8]
     mov [eax+4], edx
+    test edx, edx
+    je .endif
+        mov [edx+8], eax
+    .endif:
+    mov dword [eax+8], 0
     
     leave
     ret
