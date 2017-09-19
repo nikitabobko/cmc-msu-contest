@@ -1,5 +1,4 @@
 #include <stdio.h>
-#define MAX(X, Y) (((X) < (Y)) ? (Y) : (X))
 
 int 
 main(int argc, char const *argv[])
@@ -12,9 +11,9 @@ main(int argc, char const *argv[])
         sscanf(argv[3], "%lf", &credit) != 1) {
         return 1;
     }
-    for (int i = 0; i < MAX(1, argc - 4); i++) {
+    for (int i = 4; i < argc; i++) {
         double transaction = 0.0;
-        if (i < argc - 4 && sscanf(argv[i+4], "%lf", &transaction) != 1) {
+        if (sscanf(argv[i], "%lf", &transaction) != 1) {
             return 1;
         }
         balance += transaction;
