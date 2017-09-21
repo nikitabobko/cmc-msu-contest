@@ -3,13 +3,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
-
-char 
-is_little_endian(void)
-{
-    unsigned short a = 0x1;
-    return *((char *)&a);
-}
+#include <limits.h>
 
 int
 main(int argc, const char *argv[]) 
@@ -24,11 +18,9 @@ main(int argc, const char *argv[])
     unsigned short number;
     char buf[sizeof(number)];
     while (scanf("%hu", &number) == 1) {
-        if (is_little_endian()) {
-            buf[0] = *(((char *)&number) + 1);
-            buf[1] = *((char *)&number);    
-        } else {
-            *((unsigned short *)buf) = number;
+        for (int i = sizeof(buf) - 1; i >= 0; i--) {
+            buf[i] = number;
+            number >>= CHAR_BIT;
         }
         write(fd, buf, sizeof(buf));
     }
