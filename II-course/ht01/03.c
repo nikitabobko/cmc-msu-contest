@@ -8,13 +8,16 @@ int compar(const void *first, const void *second, void *thunk)
     if (data[first_index] == data[second_index]) {
         return first_index - second_index;
     }
-    return data[first_index] - data[second_index];
+    if (data[first_index] > data[second_index]) {
+        return 1;
+    }
+    return -1;
 }
 
 void 
 process(size_t count, const int *data, int *order) 
 {
-    if (count <= 0) {
+    if (count <= 0 || data == NULL || order == NULL) {
         return;
     }
     for (int i = 0; i < count; i++) {
