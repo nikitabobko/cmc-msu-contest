@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
-int compar(const void *first, const void *second, void *thunk) 
+int 
+compar(const void *first, const void *second, void *thunk) 
 {
     int first_index = *((int *) first);
     int second_index = *((int *) second);
