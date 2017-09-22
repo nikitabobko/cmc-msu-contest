@@ -18,7 +18,7 @@ int
 get_next_char(MyFile *file) 
 {
     if (file->pos >= file->last_time_read) {
-        file->last_time_read = read(fileno(stdin), file->buf, BUF_SIZE);
+        file->last_time_read = read(fileno(stdin), file->buf, sizeof(file->buf));
         if (file->last_time_read == -1) {
             return -2;
         }
@@ -30,7 +30,7 @@ get_next_char(MyFile *file)
     return file->buf[file->pos++];
 }
 
-int 
+int
 main(void)
 {
     MyFile file;
@@ -45,7 +45,7 @@ main(void)
         if (c == EOF || c == '\n') {
             break;
         }
-        char sign = 1;
+        int sign = 1;
         int number = 0;
         do {
             if (c == -2) {
