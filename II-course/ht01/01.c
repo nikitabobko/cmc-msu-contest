@@ -8,9 +8,9 @@ satsum(int32_t v1, int32_t v2)
         return value;
     }
     int32_t max = ~((uint32_t)0) >> 1;
-    int32_t min = ~max;
     if (v1 > 0) {
         return max;
     }
-    return min;
+    // min = ~max
+    return ~max;
 }
