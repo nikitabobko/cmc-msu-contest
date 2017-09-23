@@ -3,7 +3,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <assert.h>
 #include <stdio.h>
 
 typedef struct Node
