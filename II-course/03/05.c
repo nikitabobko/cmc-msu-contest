@@ -35,12 +35,12 @@ print_tree(int fd, int index)
     if (lseek(fd, index*sizeof(node), SEEK_SET) == -1 || read_node(fd, &node) == -1) {
         return -1;
     }
-    if (node.left_idx != 0) {
-        print_tree(fd, node.left_idx);
-    }
-    printf("%d\n", node.key);
     if (node.right_idx != 0) {
         print_tree(fd, node.right_idx);
+    }
+    printf("%d\n", node.key);
+    if (node.left_idx != 0) {
+        print_tree(fd, node.left_idx);
     }
     return 0;
 }
@@ -56,5 +56,6 @@ main(int argc, char const *argv[])
         return 1;
     }
     print_tree(fd, 0);
+    close(fd);
     return 0;
 }
