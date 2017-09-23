@@ -1,3 +1,29 @@
+/*
+Submit a solution for up03-3-unix/files/copy-file-fd-1
+
+Full score: 100
+Run penalty:    10
+Time limit: 1 s
+Real time limit:    5 s
+Memory limit:   64M
+Open date:  2017/09/19 10:30:00
+Date penalty:   2017/12/31 0-50/14d
+Problem up03-3: unix/files/copy-file-fd-1
+
+Напишите функцию
+
+void copy_file(int in_fd, int out_fd);
+Функция должна скопировать все данные из файлового дескриптора in_fd в файловый дескриптор out_fd.
+
+Для буферизации ввода используйте локальный буфер размера 4096 байт.
+
+Используйте POSIX API работы с файлами.
+
+Помните, что read не обязан всегда считывать ровно то количество байт, которое было запрошено.
+
+Помните, что write не обязан всегда записывать ровно то количество байт, которое было запрошено.
+*/
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
