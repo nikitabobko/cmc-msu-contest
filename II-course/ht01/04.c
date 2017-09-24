@@ -10,9 +10,11 @@ bsearch2(
         ssize_t *p_high) 
 {
     if (nmemb <= 0) {
+        *p_high = 0;
+        *p_low = 0;
         return 0;
     }
-    ssize_t middle_index = (nmemb / 2);
+    ssize_t middle_index = nmemb / 2;
     const char *middle = (const char *) base + middle_index * size;
     if (compar(key, middle, user) > 0) {
         int ret = bsearch2(key, middle + size, nmemb - 1 - middle_index, size, compar, user, 
