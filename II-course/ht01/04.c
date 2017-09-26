@@ -9,34 +9,42 @@ bsearch2(
         ssize_t *p_low,
         ssize_t *p_high) 
 {
-    if (nmemb <= 0) {
-        *p_high = 0;
-        *p_low = 0;
-        return 0;
-    }
-    ssize_t middle_index = nmemb / 2;
-    const char *middle = (const char *) base + middle_index * size;
-    if (compar(key, middle, user) > 0) {
-        int ret = bsearch2(key, middle + size, nmemb - 1 - middle_index, size, compar, user, 
-            p_low, p_high);
-        *p_low = middle_index + 1 + *p_low;
-        *p_high = middle_index + 1 + *p_high;
-        return ret;
-    }
-    if (compar(key, middle, user) < 0) {
-        return bsearch2(key, base, middle_index, size, compar, user, p_low, p_high);
-    }
-    if (compar(key, middle, user) == 0) {
-        if (!bsearch2(key, base, middle_index, size, compar, user, p_low, p_high)) {
-            *p_low = middle_index;
+    *p_high = 0;
+    *p_low = 0;
+    int ret = 0;
+    char is_p_high_defined = 0;
+    while (1) {
+        if (nmemb <= 0) {
+            return ret;
         }
-        ssize_t cur_index = middle_index;
-        while (cur_index < nmemb && 
-            compar(key, (const char *) base + cur_index * size, user) == 0) {
-            cur_index++;
+        ssize_t middle_index = nmemb / 2;
+        const char *middle = (const char *) base + middle_index * size;
+        int compared = compar(key, middle, user);
+        if (compared > 0) {
+            base = middle + size;
+            nmemb = nmemb - 1 - middle_index;
+            if (!is_p_high_defined) {
+                *p_high += middle_index + 1;
+            }
+            *p_low += middle_index + 1;
+            continue;
         }
-        *p_high = cur_index;
-        return 1;
+        if (compared < 0) {
+            nmemb = middle_index;
+            continue;
+        }
+        // compared == 0
+        if (!is_p_high_defined) {
+            ssize_t cur_index = middle_index;
+            while (cur_index < nmemb && 
+                compar(key, (const char *) base + cur_index * size, user) == 0) {
+                cur_index++;
+            }
+            *p_high += cur_index;
+            is_p_high_defined = 1;
+        }
+        ret = 1;
+        nmemb = middle_index;
     }
     return 0;
 }
