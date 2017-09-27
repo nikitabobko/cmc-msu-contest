@@ -13,7 +13,7 @@ int main(int argc, char const *argv[])
             printf("-1\n");
             continue;
         }
-        printf("%lf\n", ceil(log2((double) val + 1)));
+        printf("%d\n", (int) ceil(log2((double) val + 1)));
     }
     return 0;
 }
