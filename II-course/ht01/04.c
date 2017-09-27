@@ -13,10 +13,7 @@ bsearch2(
     *p_low = 0;
     int ret = 0;
     char is_p_high_defined = 0;
-    while (1) {
-        if (nmemb <= 0) {
-            return ret;
-        }
+    while (nmemb > 0) {
         ssize_t middle_index = nmemb / 2;
         const char *middle = (const char *) base + middle_index * size;
         int compared = compar(key, middle, user);
@@ -46,5 +43,5 @@ bsearch2(
         ret = 1;
         nmemb = middle_index;
     }
-    return 0;
+    return ret;
 }
