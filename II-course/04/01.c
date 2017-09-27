@@ -7,17 +7,8 @@ int main(void) {
     }
     unsigned int number = 0, mask = (0x1 << n) - 1, overflowed = mask + 1, max = mask >> 1;
     do {
-        printf("|");
-        printf("%*u", w, number);
-        
-        printf("|");
-        printf("%*x", w, number);
-
-        printf("|");
         int n = number > max ? (-1)*(overflowed - number) : number;
-        printf("%*d", w, n);
-
-        printf("|\n");
+        printf("|%*u|%*x|%*d|\n", w, number, w, number, w, n);
         number++;
     } while((number & mask) != 0);
     return 0;
