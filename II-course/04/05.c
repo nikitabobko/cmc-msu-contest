@@ -17,7 +17,7 @@ int contains(unsigned *arr, int n, unsigned key) {
 }
 
 // returns 1 if have enough rights; otherwise 0
-int have_enough_rights(int rights, int requested_rights) {
+int have_enough_rights(unsigned rights, unsigned requested_rights) {
     return (rights & requested_rights) == requested_rights;
 }
 
@@ -36,7 +36,7 @@ int main(void) {
         offset += temp;
     }
 
-    int file_uid, file_gid, file_rights;
+    unsigned file_uid, file_gid, file_rights;
     char file_name[MAX_LINE_CHARACTERS_COUNT];
     while (scanf("%u%u%o%s", &file_uid, &file_gid, &file_rights, file_name) == 4) {
         if (file_uid == uid) {
