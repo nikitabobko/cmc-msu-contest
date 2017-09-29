@@ -1,14 +1,15 @@
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
-    char const str[] = "rwxrwxrwx";
+    const char pattern[] = "rwxrwxrwx";
     for (int i = 1; i < argc; i++) {
         unsigned num;
         sscanf(argv[i], "%o", &num);
-        for (int k = 0; k < sizeof(str) - 1; k++) {
-            printf("%c", (num >> (sizeof(str) - 2 - k)) & 0x1 ? str[k] : '-');
+        char str[sizeof(pattern)] = {};
+        for (int k = 0; k < sizeof(pattern) - 1; k++) {
+            str[k] = (num >> (sizeof(pattern) - 2 - k)) & 0x1 ? pattern[k] : '-';
         }
-        printf("\n");
+        printf("%s\n", str);
     }
     return 0;
 }
