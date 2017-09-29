@@ -3,7 +3,7 @@
 enum 
 {
     MAX_GID_NUMBER = 32,
-    MAN_LINE_CHARACTERS_COUNT = 1021
+    MAX_LINE_CHARACTERS_COUNT = 1021
 };
 
 // returns 1 if arr contains key; otherwise returns 0
@@ -16,22 +16,39 @@ int contains(unsigned *arr, int n, unsigned key) {
     return 0;
 }
 
-int main() {
+// returns 1 if have enough rights; otherwise 0
+int have_enough_rights(int rights, int requested_rights) {
+    return (rights & requested_rights) == requested_rights;
+}
+
+int main(void) {
     unsigned uid, rights, gid_len = 0;
     unsigned gid[MAX_GID_NUMBER];
-    char *line[MAN_LINE_CHARACTERS_COUNT];
+    char line[MAX_LINE_CHARACTERS_COUNT];
 
-    scanf("%u", &uid);
-    if (!fgets(line, sizeof(line), stdin)) {
+    if (scanf("%u\n", &uid) != 1 || !fgets(line, sizeof(line), stdin) || 
+        scanf("%o", &rights) != 1) {
         return 1;
     }
-    int offset = 0;
-    while (sscanf(line + offset, "%u%n", gid + gid_len, &offset) == 2) {
+    int offset = 0, temp;
+    while (sscanf(line + offset, "%u%n", gid + gid_len, &temp) == 1) {
         gid_len++;
+        offset += temp;
     }
-    scanf("%u", &rights);
 
-    
+    int file_uid, file_gid, file_rights;
+    char file_name[MAX_LINE_CHARACTERS_COUNT];
+    while (scanf("%u%u%o%s", &file_uid, &file_gid, &file_rights, file_name) == 4) {
+        if (file_uid == uid) {
+            file_rights >>= 6;
+        } else if (contains(gid, gid_len, file_gid)) {
+            file_rights >>= 3;
+        }
+        file_rights &= 07;
 
+        if (have_enough_rights(file_rights, rights)) {
+            printf("%s\n", file_name);
+        }
+    }
     return 0;
 }
