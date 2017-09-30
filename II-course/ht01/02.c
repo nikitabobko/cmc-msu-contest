@@ -3,30 +3,25 @@
 #include <errno.h>
 #include <stdint.h>
 
-// calculates ceil(log2(x+1)) not using doubles
-int ceil_log2_plus_one(uint64_t val) {
-    val++;
+int bitcount(uint64_t val) {
     int count = 0;
-    int is_power_of_two = 1;
-    while (val != 1) {
+    while (val != 0) {
         count++;
-        is_power_of_two &= ~val & 0x1;
         val >>= 1;
     }
-    return count + !is_power_of_two;
+    return count;
 }
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     for (int i = 1; i < argc; i++) {
         char *endptr = NULL;
         errno = 0;
         uint64_t val = strtoul(argv[i], &endptr, 10);
         if ((endptr != NULL && *endptr != '\0') || errno == ERANGE || val > UINT32_MAX) {
             printf("-1\n");
-            continue;
+        } else {
+            printf("%d\n", bitcount(val));
         }
-        printf("%d\n", ceil_log2_plus_one(val));
     }
     return 0;
 }
