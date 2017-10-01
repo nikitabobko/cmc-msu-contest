@@ -17,19 +17,15 @@ bsearch2(
     
     int ret = 0;
     char search_p_high_mode = 0;
-    char is_p_high_defined = 0;
 
     const char *base_backup = NULL;
-    ssize_t nmemb_backup = -1;
-    ssize_t p_high_backup = NULL;
-    while (nmemb > 0 || !is_p_high_defined) {
-        if (nmemb == 0 && !is_p_high_defined) {
-            // already in search mode and p_high was found
-            if (search_p_high_mode) {
-                return 1;
-            }
+    ssize_t nmemb_backup;
+    ssize_t p_high_backup;
+
+    while (nmemb > 0 || !search_p_high_mode) {
+        if (nmemb == 0 && !search_p_high_mode) {
             if (base_backup == NULL) {
-                return 0;
+                break;
             }
             base = base_backup;
             nmemb = nmemb_backup;
@@ -42,15 +38,13 @@ bsearch2(
         if ((!search_p_high_mode && compared > 0) || (search_p_high_mode && compared == 0)) {
             base = middle + size;
             nmemb = nmemb - 1 - middle_index;
-            if (!is_p_high_defined) {
-                *p_high += middle_index + 1;
-            }
+            *p_high += middle_index + 1;
             if (!search_p_high_mode) {
                 *p_low += middle_index + 1;
             }
             continue;
         }
-        if ((!search_p_high_mode && compared < 0) || (search_p_high_mode && compared != 0)) {
+        if ((!search_p_high_mode && compared < 0) || search_p_high_mode) {
             nmemb = middle_index;
             continue;
         }
@@ -74,7 +68,7 @@ int compar(const int *p1, const int *p2, void *user) {
 
 int main(int argc, char const *argv[]) {
     int key = 1;
-    int arr[] = {1, 1, 3};
+    int arr[] = {1, 1, 6, 9, 10};
     ssize_t p_low, p_high;
     int ret = bsearch2(&key, arr, sizeof(arr)/sizeof(*arr), sizeof(key), (int (*)(const void *, const void *, void *))&compar, NULL, &p_low, &p_high);
     printf("%d %d %d\n", ret, p_low, p_high);
