@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <sys/types.h>
-
 int
 bsearch2(
         const void *key,
@@ -60,17 +57,4 @@ bsearch2(
         nmemb = middle_index;
     }
     return ret;
-}
-
-int compar(const int *p1, const int *p2, void *user) {
-    return *p1 - *p2;
-}
-
-int main(int argc, char const *argv[]) {
-    int key = 1;
-    int arr[] = {1, 1, 6, 9, 10};
-    ssize_t p_low, p_high;
-    int ret = bsearch2(&key, arr, sizeof(arr)/sizeof(*arr), sizeof(key), (int (*)(const void *, const void *, void *))&compar, NULL, &p_low, &p_high);
-    printf("%d %d %d\n", ret, p_low, p_high);
-    return 0;
 }
