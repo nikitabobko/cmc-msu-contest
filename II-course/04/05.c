@@ -9,7 +9,7 @@ enum
 };
 
 // returns 1 if arr contains key; otherwise returns 0
-int contains(unsigned *arr, int n, unsigned key) {
+int contains(unsigned const *arr, int n, unsigned key) {
     for (int i = 0; i < n; i++) {
         if (arr[i] == key) {
             return 1;
@@ -30,7 +30,7 @@ unsigned char *trim(unsigned char *str) {
     while (end > str && isspace(*end)) {
         end--;
     }
-    *(end + 1) = '\0';
+    end[1] = '\0';
 
     return str;
 }
