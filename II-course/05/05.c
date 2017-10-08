@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <limits.h>
 #include <stdint.h>
+#include <errno.h>
+#include <string.h>
 
 enum
 {
@@ -21,11 +23,13 @@ int count_entries(int fd) {
 }
 
 // returns 1 if all is ok; otherwise 0
-int read_write_buf(int fd, char *buf, size_t size, ssize_t (*op)(int, void *, size_t)) {
+int read_write_buf(int fd, unsigned char *buf, size_t size, ssize_t (*op)(int, void *, size_t)) {
     int i = 0;
     do {
+        errno = 0;
         ssize_t bytes = op(fd, buf + i, size - i);
         if (bytes == -1) {
+            printf("%s\n", strerror(errno));
             return 0;
         }
         i += bytes;
@@ -33,17 +37,17 @@ int read_write_buf(int fd, char *buf, size_t size, ssize_t (*op)(int, void *, si
     return 1;
 }
 
-int64_t from_little_endian(const char *buf, int size) {
+int64_t from_little_endian(unsigned const char *buf, int size) {
     int64_t ret = 0;
-    for (int i = 0; i < size; i++) {
+    for (int i = size - 1; i >= 0; i--) {
         ret <<= CHAR_BIT;
-        ret |= buf[size - 1 - i];
+        ret |= buf[i];
     }
     return ret;
 }
 
 // fills only first size bytes in little endian format
-void to_little_endian(uint64_t number, int size, char *buf) {
+void to_little_endian(uint64_t number, int size, unsigned char *buf) {
     for (int i = 0; i < size; i++) {
         buf[i] = number;
         number >>= CHAR_BIT;
@@ -54,13 +58,13 @@ void to_little_endian(uint64_t number, int size, char *buf) {
 int read_entry(int fd, int index, Data *data) {
     lseek(fd, index * ENTRY_IN_BYTES, SEEK_SET);
 
-    char x_buf[sizeof(data->x)];
+    unsigned char x_buf[sizeof(data->x)];
     if (!read_write_buf(fd, x_buf, sizeof(x_buf), read)) {
         return 0;
     }
     data->x = from_little_endian(x_buf, sizeof(x_buf));
 
-    char y_buf[sizeof(data->y)];
+    unsigned char y_buf[sizeof(data->y)];
     if (!read_write_buf(fd, y_buf, sizeof(y_buf), read)) {
         return 0;
     }
@@ -72,13 +76,13 @@ int read_entry(int fd, int index, Data *data) {
 int write_entry(int fd, int index, const Data *data) {
     lseek(fd, index * ENTRY_IN_BYTES, SEEK_SET);
 
-    char x_buf[sizeof(data->x)];
+    unsigned char x_buf[sizeof(data->x)];
     to_little_endian(data->x, sizeof(data->x), x_buf);
     if (!read_write_buf(fd, x_buf, sizeof(x_buf), (ssize_t (*)(int, void *, size_t)) write)) {
         return 0;
     }
 
-    char y_buf[sizeof(data->y)];
+    unsigned char y_buf[sizeof(data->y)];
     to_little_endian(data->y, sizeof(data->y), y_buf);
     if (!read_write_buf(fd, y_buf, sizeof(y_buf), (ssize_t (*)(int, void *, size_t)) write)) {
         return 0;
@@ -89,6 +93,7 @@ int write_entry(int fd, int index, const Data *data) {
 
 // returns 1 if no overflow; 0 otherwise
 int process_entry(Data *data, int32_t a) {
+    errno = 0;
     int64_t y;
     if (__builtin_mul_overflow(data->x, a, &y) || __builtin_add_overflow(data->y, y, &(data->y))) {
         return 0;
