@@ -121,6 +121,18 @@ int main(int argc, char const *argv[]) {
             return 2;
         }
     }
+    if (entries % 2) {
+        Data data;
+        if (!read_entry(fd, entries / 2, &data)) {
+            return 2;
+        }
+        if (!process_entry(&data, a)) {
+            return 3;
+        }
+        if (!write_entry(fd, entries / 2, &data)) {
+            return 2;
+        }
+    }
     close(fd);
     return 0;
 }
