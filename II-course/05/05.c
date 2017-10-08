@@ -24,7 +24,7 @@ int count_entries(int fd) {
 int read_write_buf(int fd, char *buf, size_t size, ssize_t (*op)(int, void *, size_t)) {
     int i = 0;
     do {
-        ssize_t bytes = op(fd, buf + i, size);
+        ssize_t bytes = op(fd, buf + i, size - i);
         if (bytes == -1) {
             return 0;
         }
@@ -90,7 +90,7 @@ int write_entry(int fd, int index, const Data *data) {
 // returns 1 if no overflow; 0 otherwise
 int process_entry(Data *data, int32_t a) {
     int64_t y;
-    if (__builtin_mul_overflow(data->x, a, &y) || __builtin_add_overflow(data->y, y, &y)) {
+    if (__builtin_mul_overflow(data->x, a, &y) || __builtin_add_overflow(data->y, y, &(data->y))) {
         return 0;
     }
     return 1;
@@ -105,7 +105,9 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
     int32_t a;
-    sscanf(argv[2], "%d", &a);
+    if (sscanf(argv[2], "%d", &a) != 1) {
+        return 1;
+    }
     int entries = count_entries(fd);
     for (int i = 0; i < entries / 2; i++) {
         Data first, second;
@@ -119,5 +121,6 @@ int main(int argc, char const *argv[]) {
             return 2;
         }
     }
+    close(fd);
     return 0;
 }
