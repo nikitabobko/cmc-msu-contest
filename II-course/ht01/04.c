@@ -9,55 +9,45 @@ bsearch2(
         ssize_t *p_low,
         ssize_t *p_high)
 {
-    *p_high = 0;
-    *p_low = 0;
+    if (nmemb == 0) {
+        *p_low = 0;
+        *p_high = 0;
+        return 0;
+    }
 
-    int ret = 0;
+    *p_high = -1;
+    ssize_t p_high_local = nmemb, p_low_local = 0;
 
-    const char *base_backup = NULL;
-    ssize_t nmemb_backup = 0;
-    ssize_t p_high_backup = 0;
-
-    while (nmemb > 0) {
-        ssize_t middle_index = nmemb / 2;
+    while (p_high_local > p_low_local) {
+        ssize_t middle_index = p_low_local + (p_high_local - p_low_local) / 2;
         const char *middle = (const char *) base + middle_index * size;
         int compared = compar(key, middle, user);
         if (compared > 0) {
-            base = middle + size;
-            nmemb = nmemb - 1 - middle_index;
-            *p_high += middle_index + 1;
-            *p_low += middle_index + 1;
-        } else if (compared < 0) {
-            nmemb = middle_index;
-        } else {
-            if (base_backup == NULL) {
-                base_backup = base;
-                nmemb_backup = nmemb;
-                p_high_backup = *p_high;
+            p_low_local = middle_index + 1;
+        } else if (compared <= 0) {
+            if (*p_high == -1 && !compared) {
+                *p_high = p_high_local;
             }
-
-            ret = 1;
-            nmemb = middle_index;
+            p_high_local = middle_index;
         }
     }
-    if (!ret) {
-        return ret;
+    *p_low = p_low_local;
+    if (compar(key, (const char *) base + p_low_local * size, user)) {
+        *p_high = p_high_local;
+        return 0;
     }
     // Search p_high
-    base = base_backup;
-    nmemb = nmemb_backup;
-    *p_high = p_high_backup;
-    while (nmemb > 0) {
-        ssize_t middle_index = nmemb / 2;
+    p_high_local = *p_high;
+    while (p_high_local > p_low_local) {
+        ssize_t middle_index = p_low_local + (p_high_local - p_low_local) / 2;
         const char *middle = (const char *) base + middle_index * size;
         int compared = compar(key, middle, user);
         if (compared == 0) {
-            base = middle + size;
-            nmemb = nmemb - 1 - middle_index;
-            *p_high += middle_index + 1;
+            p_low_local = middle_index + 1;
         } else {
-            nmemb = middle_index;
+            p_high_local = middle_index;   
         }
     }
-    return ret;
+    *p_high = p_high_local;
+    return 1;
 }
