@@ -26,7 +26,7 @@ int num_of_files_in_dir(const char *path, DIR *dir) {
         if (skip == -1) {
             return -1;
         }
-        count += !skip_file(path, dd);
+        count += !skip;
     }
     rewinddir(dir);
     return count;
