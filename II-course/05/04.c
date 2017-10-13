@@ -15,7 +15,7 @@ int skip_file(const char *path, struct dirent *dd) {
         return -1;
     }
     return !S_ISDIR(s.st_mode) || strcmp(dd->d_name, ".") == 0 || strcmp(dd->d_name, "..") == 0 || 
-        access(file, R_OK);
+        access(file, R_OK | W_OK);
 }
 
 int num_of_files_in_dir(const char *path, DIR *dir) {
