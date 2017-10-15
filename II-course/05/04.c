@@ -23,9 +23,6 @@ int num_of_files_in_dir(const char *path, DIR *dir) {
     struct dirent *dd;
     while ((dd = readdir(dir))) {
         int skip = skip_file(path, dd);
-        if (skip == -1) {
-            return -1;
-        }
         count += !skip;
     }
     rewinddir(dir);
@@ -44,7 +41,7 @@ void process_dir(DIR *dir, const char *path) {
     if (num < 0) {
         return;
     }
-    char **files = calloc(num, sizeof(path));
+    char **files = calloc(num, sizeof(*files));
     if (files == NULL && num > 0) {
         return;
     }
@@ -54,9 +51,6 @@ void process_dir(DIR *dir, const char *path) {
             return;
         }
         int skip = skip_file(path, dd);
-        if (skip == -1) {
-            return;
-        } 
         if (!skip) {
             files[i] = calloc(strlen(dd->d_name) + 1, sizeof(dd->d_name[0]));
             strcpy(files[i], dd->d_name);
@@ -70,7 +64,7 @@ void process_dir(DIR *dir, const char *path) {
         int file_path_len = snprintf(file, sizeof(file), "%s/%s", path, files[i]);
         
         DIR *child_dir = opendir(file);
-        if (child_dir != NULL && file_path_len <= PATH_MAX - 1) {
+        if (child_dir && file_path_len < sizeof(file)) {
             printf("cd %s\n", files[i]);
             process_dir(child_dir, file);
             printf("cd ..\n");
