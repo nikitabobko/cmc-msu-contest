@@ -67,10 +67,10 @@ void process_dir(DIR *dir, const char *path) {
     qsort(files, num, sizeof(*files), (int(*)(const void *, const void *)) cmp);
     for (int i = 0; i < num; i++) {
         char file[PATH_MAX];
-        snprintf(file, sizeof(file), "%s/%s", path, files[i]);
+        int file_path_len = snprintf(file, sizeof(file), "%s/%s", path, files[i]);
         
         DIR *child_dir = opendir(file);
-        if (child_dir != NULL) {
+        if (child_dir != NULL && file_path_len <= PATH_MAX - 1) {
             printf("cd %s\n", files[i]);
             process_dir(child_dir, file);
             printf("cd ..\n");
@@ -85,6 +85,9 @@ void process_dir(DIR *dir, const char *path) {
 int main(int argc, char const *argv[]) {
     if (argc != 2) {
         return 1;
+    }
+    if (strlen(argv[1]) > PATH_MAX - 1) {
+        return 0;
     }
     process_dir(opendir(argv[1]), argv[1]);
     return 0;
