@@ -6,74 +6,54 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-// returns -1 if error occur; 1 if file should be skipped and 0 if shouldn't
-int skip_file(const char *path, struct dirent *dd) {
-    struct stat s;
-    char file[PATH_MAX];
-    snprintf(file, sizeof(file), "%s/%s", path, dd->d_name);
-    if (lstat(file, &s) == -1) {
-        return -1;
-    }
-    return !S_ISDIR(s.st_mode) || strcmp(dd->d_name, ".") == 0 || strcmp(dd->d_name, "..") == 0 || 
-            access(file, R_OK);
-}
+enum 
+{
+    BUF_SIZE = 32
+};
 
-int num_of_files_in_dir(const char *path, DIR *dir) {
-    int count = 0;
-    struct dirent *dd;
-    while ((dd = readdir(dir))) {
-        int skip = skip_file(path, dd);
-        count += !skip;
-    }
-    rewinddir(dir);
-    return count;
-}
-
-int cmp(const char **s1, const char **s2) {
-    return strcasecmp(*s1, *s2);
+int cmp(const char **p1, const char **p2) {
+    return strcasecmp(*p1, *p2);
 }
 
 void process_dir(DIR *dir, const char *path) {
-    if (dir == NULL) {
+    if (dir == NULL || path == NULL) {
         return;
     }
-    int num = num_of_files_in_dir(path, dir);
-    if (num < 0) {
-        return;
-    }
-    char **files = calloc(num, sizeof(*files));
-    if (files == NULL && num > 0) {
-        return;
-    }
-    for (int i = 0; i < num; i++) {
-        struct dirent *dd = readdir(dir);
-        if (!dd) {
-            return;
+    char **files = calloc(BUF_SIZE, sizeof(*files));
+    int size = 0;
+    int capacity = BUF_SIZE;
+    struct dirent *dd;
+    while ((dd = readdir(dir))) {
+        if (strcmp(dd->d_name, ".") && strcmp(dd->d_name, "..")) {
+            char file[PATH_MAX];
+            int file_path_len = snprintf(file, sizeof(file), "%s/%s", path, dd->d_name);
+
+            struct stat s;
+            if (!access(file, R_OK) && !lstat(file, &s) && S_ISDIR(s.st_mode) && 
+                    file_path_len < sizeof(file)) {
+                if (size == capacity) {
+                    capacity *= 2;
+                    files = realloc(files, capacity * sizeof(*files));
+                }
+                files[size] = calloc(strlen(dd->d_name) + 1, sizeof(**files));
+                strcpy(files[size++], dd->d_name);
+            }
         }
-        int skip = skip_file(path, dd);
-        if (!skip) {
-            files[i] = calloc(strlen(dd->d_name) + 1, sizeof(dd->d_name[0]));
-            strcpy(files[i], dd->d_name);
-        } else {
-            i--;
-        }
     }
-    qsort(files, num, sizeof(*files), (int(*)(const void *, const void *)) cmp);
-    for (int i = 0; i < num; i++) {
+    closedir(dir);
+    qsort(files, size, sizeof(*files), (int(*)(const void *, const void *))cmp);
+    for (int i = 0; i < size; i++) {
         char file[PATH_MAX];
-        int file_path_len = snprintf(file, sizeof(file), "%s/%s", path, files[i]);
-        
+        snprintf(file, sizeof(file), "%s/%s", path, files[i]);
         DIR *child_dir = opendir(file);
-        if (child_dir && file_path_len < sizeof(file)) {
+        if (child_dir != NULL) {
             printf("cd %s\n", files[i]);
             process_dir(child_dir, file);
             printf("cd ..\n");
         }
-        
         free(files[i]);
     }
     free(files);
-    closedir(dir);
 }
 
 int main(int argc, char const *argv[]) {
