@@ -36,8 +36,7 @@ int cmp(const char **s1, const char **s2) {
     return strcasecmp(*s1, *s2);
 }
 
-void process_dir(const char *path) {
-    DIR *dir = opendir(path);
+void process_dir(DIR *dir, const char *path) {
     if (dir == NULL) {
         return;
     }
@@ -70,9 +69,12 @@ void process_dir(const char *path) {
         char file[PATH_MAX];
         snprintf(file, sizeof(file), "%s/%s", path, files[i]);
         
-        printf("cd %s\n", files[i]);
-        process_dir(file);
-        printf("cd ..\n");
+        DIR *child_dir = opendir(file);
+        if (child_dir != NULL) {
+            printf("cd %s\n", files[i]);
+            process_dir(child_dir, file);
+            printf("cd ..\n");
+        }
         
         free(files[i]);
     }
@@ -84,6 +86,6 @@ int main(int argc, char const *argv[]) {
     if (argc != 2) {
         return 1;
     }
-    process_dir(argv[1]);
+    process_dir(opendir(argv[1]), argv[1]);
     return 0;
 }
