@@ -35,8 +35,7 @@ void process_dir(DIR *dir, const char *path) {
                     capacity *= 2;
                     files = realloc(files, capacity * sizeof(*files));
                 }
-                files[size] = calloc(strlen(dd->d_name) + 1, sizeof(**files));
-                strcpy(files[size++], dd->d_name);
+                files[size++] = strdup(dd->d_name);
             }
         }
     }
