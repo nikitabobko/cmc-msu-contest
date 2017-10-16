@@ -17,10 +17,16 @@ char *getline2(FILE *f) {
         if (line == NULL) {
             size = DEFAULT_CAPACITY;
             line = malloc(size * sizeof(*line));
+            if (line == NULL) {
+                return NULL;
+            }
         }
         if (cur_pos + 1 >= size) {
             size *= 2;
             line = realloc(line, size * sizeof(*line));
+            if (line == NULL) {
+                return NULL;
+            }
         }
         line[cur_pos++] = c;
         if (c == '\n') {
