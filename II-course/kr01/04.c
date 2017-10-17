@@ -61,6 +61,7 @@ int read_entry(int fd, int offset, FileEntry *data) {
         return 0;
     }
     if (!read_buf(fd, data->str, data->len)) {
+        free(data->str);
         return 0;
     }
 
@@ -79,13 +80,18 @@ int main(int argc, char const *argv[]) {
     char *alphabetically_max = NULL;
     FileEntry data;
     memset(&data, 0, sizeof(data));
-    while (read_entry(fd, data.offset, &data) && data.offset != 0) {
+    do {
+        if (!read_entry(fd, data.offset, &data)) {
+            break;
+        }
         if (alphabetically_max == NULL || strcmp(data.str, alphabetically_max) > 0) {
+            free(alphabetically_max);
             alphabetically_max = data.str;
         }
-    }
+    } while (data.offset != 0);
     if (alphabetically_max != NULL) {
         printf("%s\n", alphabetically_max);
+        free(alphabetically_max);
     }
     close(fd);
     return 0;
