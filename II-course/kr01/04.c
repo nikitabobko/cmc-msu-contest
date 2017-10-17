@@ -56,7 +56,7 @@ int read_entry(int fd, int offset, FileEntry *data) {
     }
     data->offset = from_little_endian(offset_buf, sizeof(offset_buf));
 
-    data->str = calloc(data->len, sizeof(data->str[0]));
+    data->str = calloc(data->len + 1, sizeof(data->str[0]));
     if (data->str == NULL) {
         return 0;
     }
@@ -64,6 +64,7 @@ int read_entry(int fd, int offset, FileEntry *data) {
         free(data->str);
         return 0;
     }
+    data->str[data->len] = '\0';
 
     lseek(fd, -(FIRST_TWO_FIELDS_IN_BYTES + data->len), SEEK_CUR);
     return 1;
