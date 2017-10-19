@@ -23,10 +23,12 @@ char *getline2(FILE *f) {
         }
         if (cur_pos + 1 >= size) {
             size *= 2;
-            line = realloc(line, size * sizeof(*line));
-            if (line == NULL) {
+            char *ptr = realloc(line, size * sizeof(*line));
+            if (ptr == NULL) {
+                free(line);
                 return NULL;
             }
+            line = ptr;
         }
         line[cur_pos++] = c;
         if (c == '\n') {
