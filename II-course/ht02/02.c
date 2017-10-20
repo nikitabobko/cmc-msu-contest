@@ -3,7 +3,7 @@
 
 enum 
 {
-    DEFAULT_CAPACITY = 16,
+    DEFAULT_CAPACITY = 32,
     MAX_SPACE_CODE_POINT = 0x20
 };
 
@@ -16,6 +16,10 @@ int code_point_to_bytes(unsigned char c) {
         return 3;
     } else if (c >> 3 == 0x1e) {
         return 4;
+    } else if (c >> 2 == 0x3e) {
+        return 5;
+    } else if (c >> 1 == 0x7e) {
+        return 6;
     }
     exit(1);
 }
@@ -25,7 +29,7 @@ int length(unsigned char *str) {
         return 0;
     }
     int len = 0;
-    while (*str != '\0' && *str > MAX_SPACE_CODE_POINT) {
+    while (*str != '\0') {
         str += code_point_to_bytes(*str);
         len++;
     }
@@ -73,6 +77,8 @@ int main(void) {
             max_len = len;
             free(max_len_str);
             max_len_str = str;
+        } else {
+            free(str);
         }
     }
 
