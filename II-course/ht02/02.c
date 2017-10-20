@@ -26,19 +26,8 @@ int code_point_to_bytes(unsigned char c) {
     exit(1);
 }
 
-int length(unsigned char *str) {
-    if (str == NULL) {
-        return 0;
-    }
-    int len = 0;
-    while (*str != '\0') {
-        str += code_point_to_bytes(*str);
-        len++;
-    }
-    return len;
-}
-
-unsigned char *read_word(unsigned char *buf, int *size) {
+unsigned char *read_word(unsigned char *buf, int *size, int *len) {
+    *len = 0;
     int c;
     do {
         c = fgetc(stdin);
@@ -46,7 +35,7 @@ unsigned char *read_word(unsigned char *buf, int *size) {
     if (c == EOF) {
         return NULL;
     }
-    int pos = 0, size_local = *size;
+    int pos = 0, size_local = *size, wait = 0, len_local = 0;
     do {
         if (buf == NULL) {
             size_local = DEFAULT_CAPACITY;
@@ -65,9 +54,17 @@ unsigned char *read_word(unsigned char *buf, int *size) {
             buf = ptr;
         }
         buf[pos++] = (c == '\0' ? MAX_SPACE_CODE_POINT : c);
+
+        if (!wait) {
+            len_local++;
+            wait += code_point_to_bytes(buf[pos - 1]) - 1;
+        } else {
+            wait--;
+        }
     } while ((c = fgetc(stdin)) != EOF && c > MAX_SPACE_CODE_POINT);
     buf[pos] = '\0';
     *size = size_local;
+    *len = len_local;
     return buf;
 }
 
@@ -75,8 +72,8 @@ int main(void) {
     clock_t begin = clock();
     int max_len = 0, len, buf_size = 0;
     char *max_len_str = NULL, *str = NULL;
-    while ((str = read_word(str, &buf_size))) {
-        if ((len = length(str)) > max_len) {
+    while ((str = read_word(str, &buf_size, &len))) {
+        if (len > max_len) {
             max_len = len;
             max_len_str = strdup(str);
         }
