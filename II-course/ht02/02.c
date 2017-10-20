@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 enum 
@@ -37,7 +38,7 @@ int length(unsigned char *str) {
     return len;
 }
 
-unsigned char *read_word(void) {
+unsigned char *read_word(unsigned char *buf, int *size) {
     int c;
     do {
         c = fgetc(stdin);
@@ -45,43 +46,39 @@ unsigned char *read_word(void) {
     if (c == EOF) {
         return NULL;
     }
-    unsigned char *str = NULL;
-    int size = 0, pos = 0;
+    int pos = 0, size_local = *size;
     do {
-        if (str == NULL) {
-            size = DEFAULT_CAPACITY;
-            str = malloc(size * sizeof(*str));
-            if (str == NULL) {
+        if (buf == NULL) {
+            size_local = DEFAULT_CAPACITY;
+            buf = malloc(size_local * sizeof(*buf));
+            if (buf == NULL) {
                 return NULL;
             }
         }
-        if (pos + 1 >= size) {
-            size *= 2;
-            char *ptr = realloc(str, size * sizeof(*str));
+        if (pos + 1 >= size_local) {
+            size_local *= 2;
+            char *ptr = realloc(buf, size_local * sizeof(*buf));
             if (ptr == NULL) {
-                free(str);
+                free(buf);
                 return NULL;
             }
-            str = ptr;
+            buf = ptr;
         }
-        str[pos++] = (c == '\0' ? MAX_SPACE_CODE_POINT : c);
+        buf[pos++] = (c == '\0' ? MAX_SPACE_CODE_POINT : c);
     } while ((c = fgetc(stdin)) != EOF && c > MAX_SPACE_CODE_POINT);
-    str[pos] = '\0';
-    return str;
+    buf[pos] = '\0';
+    *size = size_local;
+    return buf;
 }
 
 int main(void) {
     clock_t begin = clock();
-
-    int max_len = 0, len;
-    char *max_len_str = NULL, *str;
-    while ((str = read_word())) {
+    int max_len = 0, len, buf_size = 0;
+    char *max_len_str = NULL, *str = NULL;
+    while ((str = read_word(str, &buf_size))) {
         if ((len = length(str)) > max_len) {
             max_len = len;
-            free(max_len_str);
-            max_len_str = str;
-        } else {
-            free(str);
+            max_len_str = strdup(str);
         }
     }
 
@@ -91,6 +88,7 @@ int main(void) {
     }
 
     free(max_len_str);
+    free(str);
 
     clock_t end = clock();
     printf("%lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
