@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 enum 
 {
@@ -25,56 +24,61 @@ int code_point_to_bytes(unsigned char c) {
     exit(1);
 }
 
-unsigned char *read_word(unsigned char *buf, int *size, int *len) {
-    *len = 0;
+int length(unsigned char *str) {
+    if (str == NULL) {
+        return 0;
+    }
+    int len = 0;
+    while (*str != '\0') {
+        str += code_point_to_bytes(*str);
+        len++;
+    }
+    return len;
+}
+
+unsigned char *read_word(void) {
     int c;
     do {
-        c = getc(stdin);
+        c = getc_unlocked(stdin);
     } while (c != EOF && c <= MAX_SPACE_CODE_POINT);
     if (c == EOF) {
         return NULL;
     }
-    int pos = 0, size_local = *size, wait = 0, len_local = 0;
+    unsigned char *str = NULL;
+    int size = 0, pos = 0;
     do {
-        if (buf == NULL) {
-            size_local = DEFAULT_CAPACITY;
-            buf = malloc(size_local * sizeof(*buf));
-            if (buf == NULL) {
+        if (str == NULL) {
+            size = DEFAULT_CAPACITY;
+            str = malloc(size * sizeof(*str));
+            if (str == NULL) {
                 return NULL;
             }
         }
-        if (pos + 1 >= size_local) {
-            size_local *= 2;
-            char *ptr = realloc(buf, size_local * sizeof(*buf));
+        if (pos + 1 >= size) {
+            size *= 2;
+            char *ptr = realloc(str, size * sizeof(*str));
             if (ptr == NULL) {
-                free(buf);
+                free(str);
                 return NULL;
             }
-            buf = ptr;
+            str = ptr;
         }
-        buf[pos++] = (c == '\0' ? MAX_SPACE_CODE_POINT : c);
-
-        if (!wait) {
-            len_local++;
-            wait += code_point_to_bytes(buf[pos - 1]) - 1;
-        } else {
-            wait--;
-        }
-    } while ((c = getc(stdin)) != EOF && c > MAX_SPACE_CODE_POINT);
-    buf[pos] = '\0';
-    *size = size_local;
-    *len = len_local;
-    return buf;
+        str[pos++] = (c == '\0' ? MAX_SPACE_CODE_POINT : c);
+    } while ((c = getc_unlocked(stdin)) != EOF && c > MAX_SPACE_CODE_POINT);
+    str[pos] = '\0';
+    return str;
 }
 
 int main(void) {
-    int max_len = 0, len, buf_size = 0;
-    char *max_len_str = NULL, *str = NULL;
-    while ((str = read_word(str, &buf_size, &len))) {
-        if (len > max_len) {
+    int max_len = 0, len;
+    char *max_len_str = NULL, *str;
+    while ((str = read_word())) {
+        if ((len = length(str)) > max_len) {
             max_len = len;
             free(max_len_str);
-            max_len_str = strdup(str);
+            max_len_str = str;
+        } else {
+            free(str);
         }
     }
 
@@ -84,7 +88,5 @@ int main(void) {
     }
 
     free(max_len_str);
-    free(str);
-
     return 0;
 }
