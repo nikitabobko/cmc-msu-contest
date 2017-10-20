@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 enum 
 {
@@ -30,7 +29,7 @@ unsigned char *read_word(unsigned char *buf, int *size, int *len) {
     *len = 0;
     int c;
     do {
-        c = fgetc(stdin);
+        c = getc(stdin);
     } while (c != EOF && c <= MAX_SPACE_CODE_POINT);
     if (c == EOF) {
         return NULL;
@@ -61,7 +60,7 @@ unsigned char *read_word(unsigned char *buf, int *size, int *len) {
         } else {
             wait--;
         }
-    } while ((c = fgetc(stdin)) != EOF && c > MAX_SPACE_CODE_POINT);
+    } while ((c = getc(stdin)) != EOF && c > MAX_SPACE_CODE_POINT);
     buf[pos] = '\0';
     *size = size_local;
     *len = len_local;
@@ -69,12 +68,12 @@ unsigned char *read_word(unsigned char *buf, int *size, int *len) {
 }
 
 int main(void) {
-    clock_t begin = clock();
     int max_len = 0, len, buf_size = 0;
     char *max_len_str = NULL, *str = NULL;
     while ((str = read_word(str, &buf_size, &len))) {
         if (len > max_len) {
             max_len = len;
+            free(max_len_str);
             max_len_str = strdup(str);
         }
     }
@@ -87,7 +86,5 @@ int main(void) {
     free(max_len_str);
     free(str);
 
-    clock_t end = clock();
-    printf("%lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
     return 0;
 }
