@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 enum 
 {
@@ -70,6 +71,8 @@ unsigned char *read_word(void) {
 }
 
 int main(void) {
+    clock_t begin = clock();
+
     int max_len = 0, len;
     char *max_len_str = NULL, *str;
     while ((str = read_word())) {
@@ -88,5 +91,8 @@ int main(void) {
     }
 
     free(max_len_str);
+
+    clock_t end = clock();
+    printf("%lf\n", (double)(end - begin) / CLOCKS_PER_SEC);
     return 0;
 }
