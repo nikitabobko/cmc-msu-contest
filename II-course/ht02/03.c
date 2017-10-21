@@ -11,11 +11,9 @@ int main(int argc, char const *argv[]) {
     while ((c = fgetwc(stdin)) != WEOF) {
         if (iswdigit(c) != 0) {
             digits++;
-        }
-        if (iswupper(c) != 0) {
+        } else if (iswupper(c) != 0) {
             upper++;
-        }
-        if (iswlower(c) != 0) {
+        } else if (iswlower(c) != 0) {
             lower++;
         }
     }
