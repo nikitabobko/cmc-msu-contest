@@ -37,7 +37,7 @@ static ssize_t getcwd_internal(char *buf, size_t size) {
     char local_buf[PATH_MAX] = {}, temp[PATH_MAX];
     ssize_t ret = 1;
     if (cur.st_ino == root_stat.st_ino && cur.st_dev == root_stat.st_dev) {
-        local_buf[0] = '/';
+        strcpy(local_buf, "/");
     }
 
     while (cur.st_ino != root_stat.st_ino || cur.st_dev != root_stat.st_dev) {
@@ -75,12 +75,4 @@ ssize_t getcwd2(int fd, char *buf, size_t size) {
         exit(1);
     }
     return ret;
-}
-
-int main(int argc, char const *argv[]) {
-    char path[15];
-    printf("%zi %s\n", getcwd2(dirfd(opendir("/home")), path, sizeof(path)), path);
-    char p[PATH_MAX];
-    printf("%s\n", getcwd(p, sizeof(p)));
-    return 0;
 }
