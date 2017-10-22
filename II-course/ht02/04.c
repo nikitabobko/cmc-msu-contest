@@ -5,7 +5,8 @@
 enum 
 {
     DEFAULT_CAPACITY = 32,
-    MAX_CODE_POINT_TO_IGNORE = 0x20
+    MAX_CODE_POINT_TO_IGNORE = 0x20,
+    MAX_BYTES_IN_CODE_POINT = 6
 };
 
 int code_point_to_bytes(unsigned char c) {
@@ -41,7 +42,7 @@ char *getstr(int *size) {
             }
         }
         if (cur_pos + 7 >= size_local) {
-            size_local *= 2;
+            size_local += size_local / 2;
             char *ptr = realloc(line, size_local * sizeof(*line));
             if (ptr == NULL) {
                 free(line);
@@ -119,16 +120,24 @@ int main(int argc, char const *argv[]) {
 
     qsort(matrix, len, sizeof(*matrix), (int(*)(const void *, const void *))cmp);
 
-    str = calloc(size, sizeof(*str));
+    str = matrix[0];
     int pos = 0;
     for (int i = 0; i < len; i++) {
         int j = size - 1;
         while (matrix[i][j] == '\0' || !is_code_point_start(matrix[i][j])) {
             j--;
         }
-        strcat(str + pos, matrix[i] + j);
-        pos += code_point_to_bytes(matrix[i][j]);
-        free(matrix[i]);
+        if (i == 0) {
+            char t[MAX_BYTES_IN_CODE_POINT + 1] = {};
+            strcpy(t, matrix[i] + j);
+            strcpy(str + pos, t);
+        } else {
+            strcat(str + pos, matrix[i] + j);    
+        }
+        pos += code_point_to_bytes(str[pos]);
+        if (i != 0) {
+            free(matrix[i]);
+        }
     }
     free(matrix);
 
