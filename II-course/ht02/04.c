@@ -73,10 +73,10 @@ int length(unsigned char *str) {
 }
 
 char *strdup_with_shift(const char *str, int size) {
-    if (str == NULL || size < 1) {
+    if (str == NULL) {
         return NULL;
     }
-    char *ret = malloc(size * sizeof(*ret));
+    char *ret = calloc(size, sizeof(*ret));
     int first_code_point_bytes = code_point_to_bytes(*str);
     strcpy(ret, str + first_code_point_bytes);
 
@@ -122,15 +122,18 @@ int main(int argc, char const *argv[]) {
     str = calloc(size, sizeof(*str));
     int pos = 0;
     for (int i = 0; i < len; i++) {
-        int j = len - 1;
-        while (!is_code_point_start(matrix[i][j])) {
+        int j = size - 1;
+        while (matrix[i][j] == '\0' || !is_code_point_start(matrix[i][j])) {
             j--;
         }
         strcat(str + pos, matrix[i] + j);
         pos += code_point_to_bytes(matrix[i][j]);
+        free(matrix[i]);
     }
+    free(matrix);
 
     printf("%s\n", str);
+    free(str);
 
     return 0;
 }
