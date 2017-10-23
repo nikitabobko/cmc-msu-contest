@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-enum 
+enum
 {
     DEFAULT_CAPACITY = 32,
     MAX_CODE_POINT_TO_IGNORE = 0x20
@@ -28,9 +28,9 @@ int code_point_to_bytes(unsigned char c) {
     exit(1);
 }
 
-char *getstr(int *size) {
+unsigned char *getstr(int *size) {
     int size_local = 0, cur_pos = 0;
-    char *line = NULL;
+    unsigned char *line = NULL;
     int c;
     while ((c = getc_unlocked(stdin)) != EOF) {
         if (c <= MAX_CODE_POINT_TO_IGNORE) {
@@ -45,7 +45,7 @@ char *getstr(int *size) {
         }
         if (cur_pos == size_local) {
             size_local += size_local / 2;
-            char *ptr = realloc(line, size_local * sizeof(*line));
+            unsigned char *ptr = realloc(line, size_local * sizeof(*line));
             if (ptr == NULL) {
                 free(line);
                 return NULL;
@@ -91,15 +91,15 @@ int cmp(const int *p1, const int *p2) {
     return base_cmp[s1] > base_cmp[s2] ? 1 : -1;
 }
 
-void append_code_point(char *dst, const char *src) {
+void append_code_point(unsigned char *dst, unsigned const char *src) {
     for (int i = 0; i < code_point_to_bytes(*src); i++) {
         dst[i] = src[i];
     }
 }
 
-int main(int argc, char const *argv[]) {
+int main(int argc, const char *argv[]) {
     int size;
-    char *str = getstr(&size);
+    unsigned char *str = getstr(&size);
     if (str == NULL) {
         return 0;
     }
@@ -120,7 +120,7 @@ int main(int argc, char const *argv[]) {
     base_cmp = str;
     qsort(offsets, len, sizeof(*offsets), (int(*)(const void *, const void *))cmp);
 
-    char *ret = calloc(size + 1, sizeof(*ret));
+    unsigned char *ret = calloc(size + 1, sizeof(*ret));
     if (ret == NULL) {
         return 0;
     }
