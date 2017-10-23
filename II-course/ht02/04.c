@@ -2,6 +2,12 @@
 #include <string.h>
 #include <stdio.h>
 
+typedef struct InfoForCmp
+{
+    int size;
+    unsigned char *base;
+} InfoForCmp;
+
 enum 
 {
     DEFAULT_CAPACITY = 32,
@@ -52,49 +58,44 @@ char *getstr(int *size) {
         }
         line[cur_pos++] = c;
     }
-    if (line != NULL) {
-        line[cur_pos++] = '\0';
-    }
     if (size != NULL) {
         *size = cur_pos;
     }
     return line;
 }
 
-int length(unsigned char *str) {
+int length(unsigned char *str, int size) {
     if (str == NULL) {
         return 0;
     }
     int len = 0;
-    while (*str != '\0') {
-        str += code_point_to_bytes(*str);
+    int i = 0;
+    while (i < size) {
+        i += code_point_to_bytes(str[i]);
         len++;
     }
     return len;
-}
-
-char *strdup_with_shift(const char *str, int size) {
-    if (str == NULL) {
-        return NULL;
-    }
-    char *ret = calloc(size, sizeof(*ret));
-    int first_code_point_bytes = code_point_to_bytes(*str);
-    strcpy(ret, str + first_code_point_bytes);
-
-    for (int i = 0; i < first_code_point_bytes; i++) {
-        ret[size - 2 - i] = str[first_code_point_bytes - 1 - i];
-    }
-    ret[size - 1] = '\0';
-
-    return ret;
 }
 
 int is_code_point_start(unsigned char c) {
     return (c >> 6) != 0x2;
 }
 
-int cmp(const char **p1, const char **p2) {
-    return strcmp(*p1, *p2);
+int cmp(unsigned const char **p1, unsigned const char **p2, InfoForCmp *info) {
+    unsigned const char *s1 = *p1, *s2 = *p2;
+    int i = 0;
+    while (i < info->size && *s1 == *s2) {
+        i++;
+        s1 = (s1 - info->base + 1) % info->size + info->base;
+        s2 = (s2 - info->base + 1) % info->size + info->base;
+    }
+    return *s1 - *s2;
+}
+
+void append_code_point(char *dst, char *src) {
+    for (int i = 0; i < code_point_to_bytes(*src); i++) {
+        dst[i] = src[i];
+    }
 }
 
 int main(int argc, char const *argv[]) {
@@ -103,46 +104,39 @@ int main(int argc, char const *argv[]) {
     if (str == NULL) {
         return 0;
     }
-    int len = length(str);
+    int len = length(str, size);
 
     char **matrix = malloc(len * sizeof(*matrix));
     if (matrix == NULL) {
         return 0;
     }
 
-    matrix[0] = str;
-    for (int i = 1; i < len; i++) {
-        matrix[i] = strdup_with_shift(matrix[i-1], size);
-        if (matrix[i] == NULL) {
-            return 0;
-        }
-    }
-
-    qsort(matrix, len, sizeof(*matrix), (int(*)(const void *, const void *))cmp);
-
-    str = matrix[0];
     int pos = 0;
     for (int i = 0; i < len; i++) {
+        matrix[i] = str + pos;
+        pos += code_point_to_bytes(str[pos]);
+    }
+
+    InfoForCmp info;
+    info.size = size;
+    info.base = str;
+    qsort_r(matrix, len, sizeof(*matrix), (int(*)(const void *, const void *, void *))cmp, &info);
+
+    char *ret = calloc(size + 1, sizeof(*ret));
+    pos = 0;
+    // Go through matrix lines
+    for (int i = 0; i < len; i++) {
         int j = size - 1;
-        while (matrix[i][j] == '\0' || !is_code_point_start(matrix[i][j])) {
+        while (!is_code_point_start(str[(matrix[i] - str + j) % size])) {
             j--;
         }
-        if (i == 0) {
-            char t[MAX_BYTES_IN_CODE_POINT + 1] = {};
-            strcpy(t, matrix[i] + j);
-            strcpy(str + pos, t);
-        } else {
-            strcat(str + pos, matrix[i] + j);    
-        }
-        pos += code_point_to_bytes(str[pos]);
-        if (i != 0) {
-            free(matrix[i]);
-        }
+        append_code_point(ret + pos, str + (matrix[i] - str + j) % size);
+        pos += code_point_to_bytes(str[(matrix[i] - str + j) % size]);
     }
-    free(matrix);
 
-    printf("%s\n", str);
+    printf("%s\n", ret);
     free(str);
+    free(ret);
 
     return 0;
 }
