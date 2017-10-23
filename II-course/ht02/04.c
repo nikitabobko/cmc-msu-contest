@@ -5,8 +5,7 @@
 enum 
 {
     DEFAULT_CAPACITY = 32,
-    MAX_CODE_POINT_TO_IGNORE = 0x20,
-    MAX_BYTES_IN_CODE_POINT = 6
+    MAX_CODE_POINT_TO_IGNORE = 0x20
 };
 
 static int size_cmp;
@@ -44,7 +43,7 @@ char *getstr(int *size) {
                 return NULL;
             }
         }
-        if (cur_pos + 7 >= size_local) {
+        if (cur_pos == size_local) {
             size_local += size_local / 2;
             char *ptr = realloc(line, size_local * sizeof(*line));
             if (ptr == NULL) {
@@ -119,6 +118,9 @@ int main(int argc, char const *argv[]) {
     qsort(matrix, len, sizeof(*matrix), (int(*)(const void *, const void *))cmp);
 
     char *ret = calloc(size + 1, sizeof(*ret));
+    if (ret == NULL) {
+        return 0;
+    }
     pos = 0;
     // Go through matrix lines
     for (int i = 0; i < len; i++) {
@@ -129,6 +131,7 @@ int main(int argc, char const *argv[]) {
         append_code_point(ret + pos, str + (matrix[i] - str + j) % size);
         pos += code_point_to_bytes(str[(matrix[i] - str + j) % size]);
     }
+    ret[size] = '\0';
 
     printf("%s\n", ret);
     free(str);
