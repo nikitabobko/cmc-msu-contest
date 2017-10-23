@@ -2,18 +2,15 @@
 #include <string.h>
 #include <stdio.h>
 
-typedef struct InfoForCmp
-{
-    int size;
-    unsigned char *base;
-} InfoForCmp;
-
 enum 
 {
     DEFAULT_CAPACITY = 32,
     MAX_CODE_POINT_TO_IGNORE = 0x20,
     MAX_BYTES_IN_CODE_POINT = 6
 };
+
+static int size_cmp;
+static unsigned char *base_cmp;
 
 int code_point_to_bytes(unsigned char c) {
     if (c >> 7 == 0) {
@@ -81,13 +78,13 @@ int is_code_point_start(unsigned char c) {
     return (c >> 6) != 0x2;
 }
 
-int cmp(unsigned const char **p1, unsigned const char **p2, InfoForCmp *info) {
+int cmp(unsigned const char **p1, unsigned const char **p2) {
     unsigned const char *s1 = *p1, *s2 = *p2;
     int i = 0;
-    while (i < info->size && *s1 == *s2) {
+    while (i < size_cmp && *s1 == *s2) {
         i++;
-        s1 = (s1 - info->base + 1) % info->size + info->base;
-        s2 = (s2 - info->base + 1) % info->size + info->base;
+        s1 = (s1 - base_cmp + 1) % size_cmp + base_cmp;
+        s2 = (s2 - base_cmp + 1) % size_cmp + base_cmp;
     }
     return *s1 - *s2;
 }
@@ -117,10 +114,9 @@ int main(int argc, char const *argv[]) {
         pos += code_point_to_bytes(str[pos]);
     }
 
-    InfoForCmp info;
-    info.size = size;
-    info.base = str;
-    qsort_r(matrix, len, sizeof(*matrix), (int(*)(const void *, const void *, void *))cmp, &info);
+    size_cmp = size;
+    base_cmp = str;
+    qsort(matrix, len, sizeof(*matrix), (int(*)(const void *, const void *))cmp);
 
     char *ret = calloc(size + 1, sizeof(*ret));
     pos = 0;
