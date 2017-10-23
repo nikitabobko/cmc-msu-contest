@@ -77,18 +77,21 @@ int is_code_point_start(unsigned char c) {
     return (c >> 6) != 0x2;
 }
 
-int cmp(unsigned const char **p1, unsigned const char **p2) {
-    unsigned const char *s1 = *p1, *s2 = *p2;
+int cmp(const int *p1, const int *p2) {
+    int s1 = *p1, s2 = *p2;
     int i = 0;
-    while (i < size_cmp && *s1 == *s2) {
+    while (i < size_cmp && base_cmp[s1] == base_cmp[s2]) {
         i++;
-        s1 = (s1 - base_cmp + 1) % size_cmp + base_cmp;
-        s2 = (s2 - base_cmp + 1) % size_cmp + base_cmp;
+        s1 = (s1 + 1) % size_cmp;
+        s2 = (s2 + 1) % size_cmp;
     }
-    return *s1 - *s2;
+    if (base_cmp[s1] == base_cmp[s2]) {
+        return 0;
+    }
+    return base_cmp[s1] > base_cmp[s2] ? 1 : -1;
 }
 
-void append_code_point(char *dst, char *src) {
+void append_code_point(char *dst, const char *src) {
     for (int i = 0; i < code_point_to_bytes(*src); i++) {
         dst[i] = src[i];
     }
@@ -102,20 +105,20 @@ int main(int argc, char const *argv[]) {
     }
     int len = length(str, size);
 
-    char **matrix = malloc(len * sizeof(*matrix));
-    if (matrix == NULL) {
+    int *offsets = malloc(len * sizeof(*offsets));
+    if (offsets == NULL) {
         return 0;
     }
 
     int pos = 0;
     for (int i = 0; i < len; i++) {
-        matrix[i] = str + pos;
+        offsets[i] = pos;
         pos += code_point_to_bytes(str[pos]);
     }
 
     size_cmp = size;
     base_cmp = str;
-    qsort(matrix, len, sizeof(*matrix), (int(*)(const void *, const void *))cmp);
+    qsort(offsets, len, sizeof(*offsets), (int(*)(const void *, const void *))cmp);
 
     char *ret = calloc(size + 1, sizeof(*ret));
     if (ret == NULL) {
@@ -125,11 +128,11 @@ int main(int argc, char const *argv[]) {
     // Go through matrix lines
     for (int i = 0; i < len; i++) {
         int j = size - 1;
-        while (!is_code_point_start(str[(matrix[i] - str + j) % size])) {
+        while (!is_code_point_start(str[(offsets[i] + j) % size])) {
             j--;
         }
-        append_code_point(ret + pos, str + (matrix[i] - str + j) % size);
-        pos += code_point_to_bytes(str[(matrix[i] - str + j) % size]);
+        append_code_point(ret + pos, str + (offsets[i] + j) % size);
+        pos += code_point_to_bytes(str[(offsets[i] + j) % size]);
     }
     ret[size] = '\0';
 
