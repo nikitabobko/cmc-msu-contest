@@ -125,7 +125,6 @@ int main(int argc, const char *argv[]) {
         return 0;
     }
     pos = 0;
-    // Go through matrix lines
     for (int i = 0; i < len; i++) {
         int j = size - 1;
         while (!is_code_point_start(str[(offsets[i] + j) % size])) {
