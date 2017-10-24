@@ -29,13 +29,16 @@ int main(int argc, const char *argv[]) {
         char file[PATH_MAX];
         snprintf(file, sizeof(file), "%s/%s", dir_name, dd->d_name);
         struct stat info;
-        lstat(file, &info);
+        if (lstat(file, &info)) {
+            return 1;
+        }
         if (S_ISREG(info.st_mode)) {
             sum += info.st_size;
             if (info.st_size > max_file_name_size && 
                     strcmp(dd->d_name + strlen(dd->d_name) - suffix_len, suffix) == 0 && 
                     (*file_name == '\0' || strcmp(file_name, dd->d_name) > 0)) {
                 strcpy(file_name, dd->d_name);
+                max_file_name_size = info.st_size;
             }
         }
     }
