@@ -101,13 +101,13 @@ int main(int argc, const char *argv[]) {
     int size;
     unsigned char *str = getstr(&size);
     if (str == NULL) {
-        return 0;
+        return 1;
     }
     int len = length(str, size);
 
     int *offsets = malloc(len * sizeof(*offsets));
     if (offsets == NULL) {
-        return 0;
+        return 1;
     }
 
     int pos = 0;
@@ -138,6 +138,7 @@ int main(int argc, const char *argv[]) {
     printf("%s\n", ret);
     free(str);
     free(ret);
+    free(offsets);
 
     return 0;
 }
