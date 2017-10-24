@@ -20,8 +20,9 @@ char *find_in_dir(struct stat *file_stat_to_find) {
             return NULL;
         }
         if (buf.st_dev == file_stat_to_find->st_dev && buf.st_ino == file_stat_to_find->st_ino) {
+            char *ret = strdup(dd->d_name);
             closedir(dir);
-            return strdup(dd->d_name);
+            return ret;
         }
     }
     closedir(dir);
@@ -60,19 +61,17 @@ static ssize_t getcwd_internal(char *buf, size_t size) {
 }
 
 ssize_t getcwd2(int fd, char *buf, size_t size) {
-    char cwd_path[PATH_MAX];
-    if (getcwd_internal(cwd_path, sizeof(cwd_path)) < 0) {
-        exit(1);
-    }
     if (buf != NULL && size > 0) {
         *buf = '\0';
     }
+    char cwd_path[PATH_MAX] = {};
     ssize_t ret;
-    if (fchdir(fd) || (ret = getcwd_internal(buf, size)) < 0) {
+    if (getcwd_internal(cwd_path, sizeof(cwd_path)) < 0 || fchdir(fd) || 
+            (ret = getcwd_internal(buf, size)) < 0) {
         ret = -1;
     }
     if (chdir(cwd_path)) {
-        exit(1);
+        ret = -1;
     }
     return ret;
 }
