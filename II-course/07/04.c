@@ -1,17 +1,32 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef struct RandomGenerator
+enum 
 {
-    struct RandomGenerator *ops;
-    int (*next)(struct RandomGenerator *rr);
-    void (*destroy)(struct RandomGenerator *rr);
+    MASK = 0x7fffffff,
+    INCREMENT = 12345,
+    MULTIPLIER = 1103515245 
+};
+
+typedef struct RandomGenerator RandomGenerator;
+typedef struct RandomOperations RandomOperations;
+
+struct RandomOperations
+{
+    int (*next)(RandomGenerator *rr);
+    void (*destroy)(RandomGenerator *rr);
+};
+
+struct RandomGenerator
+{
+    RandomOperations *ops;
     int previous;
-} RandomGenerator;
+};
+
+static RandomOperations ops_global;
 
 int next_fun(RandomGenerator *rr) {
-    int n = (1103515245*rr->previous + 12345) % 0x80000000;
-    return rr->previous = n;
+    return rr->previous = (MULTIPLIER*rr->previous + INCREMENT) & MASK;
 }
 
 void destory_fun(RandomGenerator *rr) {
@@ -19,10 +34,25 @@ void destory_fun(RandomGenerator *rr) {
 }
 
 RandomGenerator *random_create(int seed) {
-    RandomGenerator *arr = calloc(1, sizeof(*arr));
-    arr[0].ops = arr;
-    arr[0].next = &next_fun;
-    arr[0].destroy = &destory_fun;
-    arr[0].previous = seed;
-    return arr;
+    RandomGenerator *ptr = calloc(1, sizeof(*ptr));
+    if (ptr == NULL) {
+        free(ptr);
+        return NULL;
+    }
+    ops_global.next = &next_fun;
+    ops_global.destroy = &destory_fun;
+    ptr->ops = &ops_global;
+    ptr->previous = seed;
+    return ptr;
+}
+
+int main(int argc, char const *argv[])
+{
+    RandomGenerator *rr = random_create(1234);
+    for (int j = 0; j < 100; ++j) {
+        printf("%d\n", rr->ops->next(rr));
+    }
+    rr->ops->destroy(rr);
+
+    return 0;
 }
