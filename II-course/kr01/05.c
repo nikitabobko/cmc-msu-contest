@@ -4,28 +4,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <stdint.h>
 
-int check_suffix(const char *str, const char *suffix, size_t suffix_len) {
-    size_t str_len = strlen(str);
-    if (suffix_len > str_len) {
-        return 0;
-    }
-    return strcmp(str + str_len - suffix_len, suffix) == 0;
+int check_suffix(const char *str, const char *suffix, int suffix_len) {
+    int str_len = strlen(str);
+    return suffix_len <= str_len && strcmp(str + str_len - suffix_len, suffix) == 0;
 }
 
 int main(int argc, const char *argv[]) {
     if (argc != 4) {
-        return 1;
+        return 0;
     }
     const char *dir_path = argv[1];
     int64_t limit = strtol(argv[2], NULL, 10);
     const char *suffix = argv[3];
-    size_t suffix_len = strlen(suffix);
+    int suffix_len = strlen(suffix);
 
-    int64_t sum = 0;
+    uint64_t sum = 0;
     DIR *dir = opendir(dir_path);
     if (dir == NULL) {
-        return 1;
+        return 0;
     }
     struct dirent *dd;
     char *file_name = NULL;
@@ -36,7 +34,7 @@ int main(int argc, const char *argv[]) {
         struct stat info;
         if (lstat(file, &info)) {
             free(file_name);
-            return 1;
+            return 0;
         }
         if (S_ISREG(info.st_mode)) {
             sum += info.st_size;
