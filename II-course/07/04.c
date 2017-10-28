@@ -3,9 +3,9 @@
 
 enum 
 {
-    MASK = 0x7fffffff,
+    MOD = 0x80000000,
     INCREMENT = 12345,
-    MULTIPLIER = 1103515245 
+    MULTIPLIER = 1103515245
 };
 
 typedef struct RandomGenerator RandomGenerator;
@@ -19,28 +19,25 @@ struct RandomOperations
 
 struct RandomGenerator
 {
-    RandomOperations *ops;
-    int previous;
+    const RandomOperations *ops;
+    long long previous;
 };
 
-static RandomOperations ops_global;
-
 int next_fun(RandomGenerator *rr) {
-    return rr->previous = (MULTIPLIER*rr->previous + INCREMENT) & MASK;
+    return rr->previous = ((MULTIPLIER*rr->previous + INCREMENT) % MOD);
 }
 
 void destory_fun(RandomGenerator *rr) {
     free(rr);
 }
 
+static const RandomOperations ops_global = {&next_fun, &destory_fun};
+
 RandomGenerator *random_create(int seed) {
     RandomGenerator *ptr = calloc(1, sizeof(*ptr));
     if (ptr == NULL) {
-        free(ptr);
         return NULL;
     }
-    ops_global.next = &next_fun;
-    ops_global.destroy = &destory_fun;
     ptr->ops = &ops_global;
     ptr->previous = seed;
     return ptr;
