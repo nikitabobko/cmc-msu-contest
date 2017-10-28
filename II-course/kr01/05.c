@@ -37,12 +37,13 @@ int main(int argc, const char *argv[]) {
         }
         if (S_ISREG(info.st_mode)) {
             sum += info.st_size;
-            if (info.st_size > max_size &&
-                    check_suffix(dd->d_name, suffix, suffix_len) &&
-                    (file_name == NULL || strcmp(file_name, dd->d_name) > 0)) {
-                free(file_name);
-                file_name = strdup(dd->d_name);
-                max_size = info.st_size;
+            if (info.st_size >= max_size && check_suffix(dd->d_name, suffix, suffix_len)) {
+                if (info.st_size > max_size || 
+                        (file_name == NULL || strcmp(file_name, dd->d_name) > 0)) {
+                    free(file_name);
+                    file_name = strdup(dd->d_name);
+                    max_size = info.st_size;
+                }
             }
         }
     }
