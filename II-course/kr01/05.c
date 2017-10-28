@@ -33,8 +33,7 @@ int main(int argc, const char *argv[]) {
         snprintf(file, sizeof(file), "%s/%s", dir_path, dd->d_name);
         struct stat info;
         if (lstat(file, &info)) {
-            free(file_name);
-            return 0;
+            continue;
         }
         if (S_ISREG(info.st_mode)) {
             sum += info.st_size;
