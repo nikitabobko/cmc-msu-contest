@@ -5,7 +5,7 @@ enum
 {
     MOD = 0x80000000,
     INCREMENT = 12345,
-    MULTIPLIER = 1103515245
+    MULTIPLIER = 1103515245,
 };
 
 typedef struct RandomGenerator RandomGenerator;
@@ -20,11 +20,13 @@ struct RandomOperations
 struct RandomGenerator
 {
     const RandomOperations *ops;
-    long long previous;
+    int previous;
 };
 
 int next_fun(RandomGenerator *rr) {
-    return rr->previous = ((MULTIPLIER*rr->previous + INCREMENT) % MOD);
+    __builtin_mul_overflow(MULTIPLIER, rr->previous, &(rr->previous));
+    __builtin_add_overflow(rr->previous, INCREMENT, &(rr->previous));
+    return rr->previous = rr->previous % MOD;
 }
 
 void destory_fun(RandomGenerator *rr) {
