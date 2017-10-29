@@ -29,13 +29,10 @@ int main(int argc, const char *argv[]) {
     char *file_name = NULL;
     off_t max_size = 0;
     while ((dd = readdir(dir))) {
-        char file[PATH_MAX + 1];
+        char file[PATH_MAX];
         snprintf(file, sizeof(file), "%s/%s", dir_path, dd->d_name);
         struct stat info;
-        if (lstat(file, &info)) {
-            continue;
-        }
-        if (S_ISREG(info.st_mode)) {
+        if (!lstat(file, &info) && S_ISREG(info.st_mode)) {
             sum += info.st_size;
             if (info.st_size >= max_size && check_suffix(dd->d_name, suffix, suffix_len)) {
                 if (info.st_size > max_size || 
