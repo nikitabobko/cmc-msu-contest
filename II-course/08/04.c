@@ -8,12 +8,14 @@ int main(void) {
     for (int i = 1; i <= n; i++) {
         printf("%d%c", i, i == n ? '\n' : ' ');
         fflush(stdout);
-        pid_t pid = fork();
-        if (pid > 0) {
-            while (wait(NULL) != -1);
-            return 0;
-        } else if (pid < 0) {
-            return 1;
+        if (i < n) {
+            pid_t pid = fork();
+            if (pid > 0) { // Parent
+                wait(NULL);
+                return 0;
+            } else if (pid < 0) {
+                return 1;
+            }
         }
     }
     return 0;
