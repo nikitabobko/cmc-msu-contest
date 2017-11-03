@@ -72,18 +72,24 @@ void char_to_rand(char c, int *rand1, int *rand2, const char alphabet[ALPHABET_L
     *rand2 = r2;
 }
 
-int check_passwd(int seed, const char *passwd_pattern, char *passwd, int passwd_len, 
+int check_passwd(int seed, const char *passwd_pattern, int passwd_len, 
         const char alphabet[ALPHABET_LENGTH]) {
     for (int i = 0; i < passwd_len; i++) {
-        passwd[i] = rand_to_char(seed, alphabet);
-        if (passwd_pattern[i] != '.' && passwd[i] != passwd_pattern[i]) {
-            passwd[0] = '\0';
+        if (passwd_pattern[i] != '.' && rand_to_char(seed, alphabet) != passwd_pattern[i]) {
             return 0;
         }
         seed = gen_next_rand(seed);
     }
-    passwd[passwd_len] = '\0';
     return 1;
+}
+
+void gen_passwd_by_seed(int seed, char *passwd, int passwd_len, 
+        const char alphabet[ALPHABET_LENGTH]) {
+    for (int i = 0; i < passwd_len; i++) {
+        passwd[i] = rand_to_char(seed, alphabet);
+        seed = gen_next_rand(seed);
+    }
+    passwd[passwd_len] = '\0';
 }
 
 int main(int argc, char const *argv[]) {
@@ -96,23 +102,23 @@ int main(int argc, char const *argv[]) {
     char alphabet[ALPHABET_LENGTH];
     form_alphabet(alphabet);
 
-    int seed1, seed2;
-    char passwd[BUF_SIZE] = {};
+    int seed1, seed2, seed = -1;
     char_to_rand(passwd_pattern[0], &seed1, &seed2, alphabet);
     for (int i = seed1; i <= seed2; i++) {
-        char cur_passwd[BUF_SIZE] = {};
-        if (check_passwd(i, passwd_pattern, cur_passwd, passwd_len, alphabet)) {
-            if (passwd[0] != '\0') {
-                passwd[0] = '\0';
+        if (check_passwd(i, passwd_pattern, passwd_len, alphabet)) {
+            if (seed != -1) {
+                seed = -1;
                 break;
             }
-            strcpy(passwd, cur_passwd);
+            seed = i;
         }
     }
 
-    if (passwd[0] == '\0') {
+    if (seed == -1) {
         printf("#\n");
     } else {
+        char passwd[BUF_SIZE] = {};
+        gen_passwd_by_seed(seed, passwd, passwd_len, alphabet);
         printf("%s\n", passwd);
     }
     return 0;
