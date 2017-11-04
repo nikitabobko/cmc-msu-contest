@@ -102,19 +102,21 @@ int main(int argc, char const *argv[]) {
     char alphabet[ALPHABET_LENGTH];
     form_alphabet(alphabet);
 
-    int seed1, seed2, seed = -1;
+    int seed1, seed2, seed;
+    int is_seed_defined = 0;
     char_to_rand(passwd_pattern[0], &seed1, &seed2, alphabet);
     for (int i = seed1; i <= seed2; i++) {
         if (check_passwd(i, passwd_pattern, passwd_len, alphabet)) {
-            if (seed != -1) {
-                seed = -1;
+            if (is_seed_defined) {
+                is_seed_defined = 0;
                 break;
             }
             seed = i;
+            is_seed_defined = 1;
         }
     }
 
-    if (seed == -1) {
+    if (!is_seed_defined) {
         printf("#\n");
     } else {
         char passwd[BUF_SIZE] = {};
