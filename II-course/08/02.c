@@ -2,8 +2,15 @@
 #include <unistd.h>
 #include <wait.h>
 
+enum 
+{
+    CHILDREN_NUM = 2,
+};
+
+#define SECOND_CHILD_MSG "3 "
+
 int main(void) {
-    for (int i = 1; i < 3; i++) {
+    for (int i = 1; i <= CHILDREN_NUM; i++) {
         pid_t pid = fork();
         if (pid > 0) {
             wait(NULL);
@@ -14,6 +21,6 @@ int main(void) {
             return 1;
         }
     }
-    printf("%d ", 3);
+    printf(SECOND_CHILD_MSG);
     return 0;
 }
