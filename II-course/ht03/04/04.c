@@ -55,6 +55,9 @@ int arg_str_to_int(const char *str) {
 void my_exit(int ret_code, char *msg, void *handle_to_close, 
         char *rand_gen_constructor_args_to_free, struct RandomFactory *factory_to_destroy, 
         struct RandomGenerator *generator_to_destroy) {
+    if (msg) {
+        fprintf(stderr, "%s\n", msg);
+    }
     free(rand_gen_constructor_args_to_free);
     if (generator_to_destroy && generator_to_destroy->ops && 
             generator_to_destroy->ops->destroy) {
@@ -65,9 +68,6 @@ void my_exit(int ret_code, char *msg, void *handle_to_close,
     }
     if (handle_to_close) {
         dlclose(handle_to_close);
-    }
-    if (msg) {
-        fprintf(stderr, "%s\n", msg);
     }
     exit(ret_code);
 }
