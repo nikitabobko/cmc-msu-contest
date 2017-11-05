@@ -1,5 +1,7 @@
 #include "plugin.h"
 #include <stdlib.h>
+#include <assert.h>
+#include <string.h>
 
 enum 
 {
@@ -8,7 +10,7 @@ enum
     MULTIPLIER = 1103515245,
 };
 
-static int cur = 0;
+static int cur = 100;
 /* === Generator === */
 
 int next_fun(struct RandomGenerator *rr, int a, int b) {
@@ -16,6 +18,7 @@ int next_fun(struct RandomGenerator *rr, int a, int b) {
 }
 
 void destory_fun(struct RandomGenerator *rr) {
+    assert(rr != NULL);
     free(rr);
 }
 
@@ -28,6 +31,7 @@ static void factory_destroy(struct RandomFactory *rf) {
 }
 
 static struct RandomGenerator *factory_new_instance(struct RandomFactory *rf, const char *args) {
+    assert(NULL != args);
     struct RandomGenerator *ptr = calloc(1, sizeof(*ptr));
     if (ptr == NULL) {
         return NULL;
@@ -37,10 +41,10 @@ static struct RandomGenerator *factory_new_instance(struct RandomFactory *rf, co
 }
 
 static const struct RandomFactoryOperations factory_operations = {&factory_destroy, 
-	                                                              &factory_new_instance};
+                                                                  &factory_new_instance};
 
 static const struct RandomFactory factory = {&factory_operations};
 
 struct RandomFactory *random_plugin_factory() {
-	return (struct RandomFactory*) &factory;
+    return (struct RandomFactory*) &factory;
 }
