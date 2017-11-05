@@ -18,6 +18,7 @@ enum
 {
     GETTING_FACTORY_FUN_NAME_BUF_SIZE = 64,
     NUMERAL_SYSTEM_BASE = 10,
+    MAX_COUNT_VALUE = 1000,
 };
 
 // first should be NULL or dynamically allocated
@@ -40,7 +41,7 @@ char *strcat_dynamically(char *first, int first_len, const char *second, int *re
     return first;
 }
 
-int str_to_int(const char *str) {
+int arg_str_to_int(const char *str) {
     char *endptr;
     errno = 0;
     int num = strtol(str, &endptr, NUMERAL_SYSTEM_BASE);
@@ -89,11 +90,17 @@ int main(int argc, char const **argv) {
     const char *plugin_filename = argv[1];
     const char *plugin_name = argv[2];
 
-    int count = str_to_int(argv[argc - 1 - COUNT_RIGHT_OFFSET_IN_ARGV]);
-    int a = str_to_int(argv[argc - 1 - A_RIGHT_OFFSET_IN_ARGV]);
-    int b = str_to_int(argv[argc - 1 - B_RIGHT_OFFSET_IN_ARGV]);
+    int count = arg_str_to_int(argv[argc - 1 - COUNT_RIGHT_OFFSET_IN_ARGV]);
+    if (count > MAX_COUNT_VALUE || count < 0) {
+        fprintf(stderr, "count should be larger than zero and less than %d\n", 
+                MAX_COUNT_VALUE);
+        return 1;
+    }
+    int a = arg_str_to_int(argv[argc - 1 - A_RIGHT_OFFSET_IN_ARGV]);
+    int b = arg_str_to_int(argv[argc - 1 - B_RIGHT_OFFSET_IN_ARGV]);
     if (a > b) {
-        fprintf(stderr, "%s\n", "a should be less or equal to b");
+        fprintf(stderr, "a should be less or equal to b\n");
+        return 1;
     }
 
     char *rand_gen_constructor_args = NULL;
@@ -116,7 +123,7 @@ int main(int argc, char const **argv) {
     void *handle = dlopen(plugin_filename, RTLD_LAZY);
     if (!handle) {
         char *err = dlerror();
-        fprintf(stderr, "%s\n", err == NULL ? "Error occurred while opening plugin" : err);
+        fprintf(stderr, "%s\n", err == NULL ? "Error occurred while opening plugin\n" : err);
         my_exit(1, handle, rand_gen_constructor_args, NULL, NULL);
     }
 
