@@ -28,6 +28,7 @@ char *strcat_dynamically(char *first, int first_len, const char *second, int *re
     }
 
     *result_length = first_len + strlen(second);
+    errno = 0;
     // Left two bytes free: first for additional space and second for terminator
     char *ptr = realloc(first, *result_length + 2);
     if (ptr == NULL) {
@@ -105,6 +106,11 @@ int main(int argc, char const **argv) {
         }
         rand_gen_constructor_args = strcat_dynamically(rand_gen_constructor_args, 
                 rand_gen_constructor_args_len, argv[i], &rand_gen_constructor_args_len);
+        if (!rand_gen_constructor_args) {
+            fprintf(stderr, "%s\n", errno == 0 ? "Error occurred while allocating memory" : 
+                    strerror(errno));
+            return 1;
+        }
     }
 
     void *handle = dlopen(plugin_filename, RTLD_LAZY);
