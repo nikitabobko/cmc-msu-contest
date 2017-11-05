@@ -5,7 +5,7 @@
 #include <dlfcn.h>
 #include "plugin.h"
 
-enum ARGV_CONSTS 
+enum ArgvConsts 
 {
     INDEX_OF_RAND_GEN_CONSTRUCTOR_ARGS = 3,
     NUM_OF_ARGS_FOLLOWED_AFTER_RAND_GEN_CONSTRUCTOR_ARGS = 3,
@@ -44,7 +44,7 @@ int str_to_int(const char *str) {
     errno = 0;
     int num = strtol(str, &endptr, NUMERAL_SYSTEM_BASE);
     if (*endptr != '\0') {
-        fprintf(stderr, "%s\n", errno == 0 ? "Inappropriate arguments format." : strerror(errno));
+        fprintf(stderr, "%s\n", errno == 0 ? "Inappropriate arguments format" : strerror(errno));
         exit(1);
     }
     return num;
@@ -52,15 +52,15 @@ int str_to_int(const char *str) {
 
 void my_exit(int ret_code, void *handle_to_close, char *rand_gen_constructor_args_to_free, 
         struct RandomFactory *factory_to_destroy, struct RandomGenerator *generator_to_destroy) {
-    if (handle_to_close != NULL) {
-        dlclose(handle_to_close);
-    }
     free(rand_gen_constructor_args_to_free);
+    if (generator_to_destroy != NULL) {
+        generator_to_destroy->ops->destroy(generator_to_destroy);
+    }
     if (factory_to_destroy != NULL) {
         factory_to_destroy->ops->destroy(factory_to_destroy);
     }
-    if (generator_to_destroy != NULL) {
-        generator_to_destroy->ops->destroy(generator_to_destroy);
+    if (handle_to_close != NULL) {
+        dlclose(handle_to_close);
     }
     exit(ret_code);
 }
@@ -74,15 +74,15 @@ struct RandomFactory *get_factory(const char *plugin_name, void *handle,
     if (fun == NULL) {
         char *err = dlerror();
         fprintf(stderr, "%s\n", err == NULL ? "Error occurred while getting function of getting "
-                "factory from plugin." : err);
+                "factory from plugin" : err);
         my_exit(1, handle, rand_gen_constructor_args, NULL, NULL);
     }
     return fun();
 }
 
 int main(int argc, char const **argv) {
-    if (argc < 7) {
-        fprintf(stderr, "Not enough arguments.\n");
+    if (argc < 6) {
+        fprintf(stderr, "Not enough arguments\n");
         return 1;
     }
     const char *plugin_filename = argv[1];
@@ -92,7 +92,7 @@ int main(int argc, char const **argv) {
     int a = str_to_int(argv[argc - 1 - A_RIGHT_OFFSET_IN_ARGV]);
     int b = str_to_int(argv[argc - 1 - B_RIGHT_OFFSET_IN_ARGV]);
     if (a > b) {
-        fprintf(stderr, "%s\n", "a should be less or equal to b.");
+        fprintf(stderr, "%s\n", "a should be less or equal to b");
     }
 
     char *rand_gen_constructor_args = NULL;
@@ -110,20 +110,28 @@ int main(int argc, char const **argv) {
     void *handle = dlopen(plugin_filename, RTLD_LAZY);
     if (!handle) {
         char *err = dlerror();
-        fprintf(stderr, "%s\n", err == NULL ? "Error occurred while opening plugin." : err);
+        fprintf(stderr, "%s\n", err == NULL ? "Error occurred while opening plugin" : err);
         my_exit(1, handle, rand_gen_constructor_args, NULL, NULL);
     }
 
     struct RandomFactory *factory = get_factory(plugin_name, handle, rand_gen_constructor_args);
-    if (factory == NULL) {
+    if (!factory) {
         fprintf(stderr, "Error occurred while getting factory\n");
+        my_exit(1, handle, rand_gen_constructor_args, factory, NULL);
+    }
+    if (!factory->ops || !factory->ops->new_instance || !factory->ops->destroy) {
+        fprintf(stderr, "Corrupted factory\n");
         my_exit(1, handle, rand_gen_constructor_args, factory, NULL);
     }
 
     struct RandomGenerator *generator = factory->ops->new_instance(factory, 
-            rand_gen_constructor_args);
-    if (generator == NULL) {
+            rand_gen_constructor_args == NULL ? "" : rand_gen_constructor_args);
+    if (!generator) {
         fprintf(stderr, "Error occurred while creating new instance of RandomGenerator\n");
+        my_exit(1, handle, rand_gen_constructor_args, factory, generator);
+    }
+    if (!generator->ops || !generator->ops->next_int || !generator->ops->destroy) {
+        fprintf(stderr, "Corrupted generator\n");
         my_exit(1, handle, rand_gen_constructor_args, factory, generator);
     }
 
