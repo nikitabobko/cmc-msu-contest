@@ -34,19 +34,21 @@ void print_line(const char *line) {
     putchar('\n');
 }
 
-void print_lines_inverse(char *point_to_line1, int offset_to_line2_from_line1) {
-    char *ptr = point_to_line1 + offset_to_line2_from_line1 - 1;
+char *line_before(char *line, char *point_to_line1) {
+    line--;
     do {
-        ptr--;
-    } while (ptr + 1 > point_to_line1 && *ptr != '\n');
-    ptr++;
+        line--;
+    } while (line + 1 > point_to_line1 && *line != '\n');
+    line++;
+    return line;
+}
+
+void print_lines_inverse(char *point_to_line1, int offset_to_line2_from_line1) {
+    char *ptr = point_to_line1 + offset_to_line2_from_line1;
+    ptr = line_before(ptr, point_to_line1);
     while (ptr >= point_to_line1) {
         print_line(ptr);
-        ptr--;
-        do {
-            ptr--;
-        } while (ptr + 1 > point_to_line1 && *ptr != '\n');
-        ptr++;
+        ptr = line_before(ptr, point_to_line1);
     }
 }
 
