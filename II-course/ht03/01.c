@@ -97,9 +97,8 @@ int main(int argc, char const **argv) {
         my_exit(file, NULL, 0);
     }
 
-    int offset_to_line1, offset_to_line2_from_line1;
-    offset_to_line1 = get_offset(1, line1, file);
-    offset_to_line2_from_line1 = get_offset(line1, line2, file);
+    int offset_to_line1 = get_offset(1, line1, file);
+    int offset_to_line2_from_line1 = get_offset(line1, line2, file);
     if (offset_to_line2_from_line1 == 0) {
         my_exit(file, NULL, 0);
     }
