@@ -7,8 +7,6 @@ enum
     CHILDREN_NUM = 2,
 };
 
-#define SECOND_CHILD_MSG "3 "
-
 int main(void) {
     for (int i = 1; i <= CHILDREN_NUM; i++) {
         pid_t pid = fork();
@@ -21,6 +19,6 @@ int main(void) {
             return 1;
         }
     }
-    printf(SECOND_CHILD_MSG);
+    printf("%d ", CHILDREN_NUM + 1);
     return 0;
 }
