@@ -14,41 +14,25 @@ enum
     NUMERICAL_SYSTEM_BASE = 10,
 };
 
-void spin(int *lock_mem) {
-    while(*lock_mem);
-    // asm(".spin_lock:\n"
-    //     "    mov (%0), %%eax\n"
-    //     "    test %%eax, %%eax\n"
-    //     "    jne .spin_lock\n" : : "g" (lock_mem) : "eax");
-}
-
-void lock(int *lock_mem) {
-    asm("mov $1, %%eax\n"
-        "xchg %%eax, (%0)\n": "+g" (lock_mem) : : "eax");
-}
-
-void unlock(int *lock_mem) {
-    asm("mov $0, %%eax\n"
-        "xchg %%eax, (%0)\n" : "+g" (lock_mem) : : "eax");
-}
-
 void play_ping_pong(int n_times, int child, int *own_lock_mem, 
         int *other_child_lock_mem, int *num_mem) {
     if (child == FIRST_LOCKED_CHILD) {
         sched_yield();
-        spin(own_lock_mem);
+        while(*own_lock_mem);
     }
     while (*num_mem <= n_times) {
         printf("%d %d\n", child, (*num_mem)++);
 
-        // fflush(stdout);
-        
-        lock(own_lock_mem);
-        unlock(other_child_lock_mem);
+        // Lock itself
+        *own_lock_mem = 1;
+        // Unlock other child
+        *other_child_lock_mem = 0;
         sched_yield();
-        spin(own_lock_mem);
+        // Spin
+        while(*own_lock_mem);
     }
-    unlock(other_child_lock_mem);
+    // Unlock other child
+    *other_child_lock_mem = 0;
     exit(0);
 }
 
@@ -56,7 +40,6 @@ int main(int argc, char const *argv[]) {
     if (argc != 2) {
         return 0;
     }
-    // setbuf(stdout, NULL);
     // Shared memory
     void *mem = mmap(NULL, SHARED_MEM_SIZE, PROT_READ | PROT_WRITE, 
             MAP_SHARED | MAP_ANONYMOUS, -1, 0);
