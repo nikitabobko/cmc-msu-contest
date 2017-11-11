@@ -57,14 +57,17 @@ void fill_with_identity_matrix(unsigned char *mem, int dim) {
 void multiply(unsigned char *res, unsigned char *mem1, unsigned char *mem2, int dim) {
     for (int i = 0; i < dim - 1; i++) {
         for (int j = i + 1; j < dim; j++) {
-
+            double cur = 0;
             for (int k = 0; k < dim; k++) {
                 double d = get_elem(mem1, i, k, dim) + get_elem(mem2, k, j, dim);
-
-                to_little_endian(res + (i * dim + j) * sizeof(double),
-                    k == 0 ? d : MIN(get_elem(res, i, j, dim), d));
+                
+                if (k == 0) {
+                    cur = d;
+                } else {
+                    cur = MIN(cur, d);
+                }
             }
-
+            to_little_endian(res + (i * dim + j) * sizeof(double), cur);
         }
     }
 }
