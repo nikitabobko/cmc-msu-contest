@@ -54,7 +54,7 @@ void fill_with_identity_matrix(unsigned char *mem, int dim) {
     }
 }
 
-void multiply(unsigned char *res, unsigned char *mem1, unsigned char *mem2, int size, int dim) {
+void multiply(unsigned char *res, unsigned char *mem1, unsigned char *mem2, int dim) {
     for (int i = 0; i < dim - 1; i++) {
         for (int j = i + 1; j < dim; j++) {
 
@@ -87,13 +87,13 @@ unsigned char *pow_matrix(unsigned char *in_mem, int dim, int power, int size) {
 
     while (power > 0) {
         if (power & 0x1) {
-            multiply(mem, res, in_mem, size, dim);
+            multiply(mem, res, in_mem, dim);
             unsigned char *t = res;
             res = mem;
             mem = t;    
         }
 
-        multiply(mem, in_mem, in_mem, size, dim);
+        multiply(mem, in_mem, in_mem,  dim);
         unsigned char *t = in_mem;
         in_mem = mem;
         mem = t;
@@ -134,7 +134,6 @@ int main(int argc, char const *argv[]) {
     char terminator = '\0';
     write(out_fd, &terminator, sizeof(terminator));
 
-    
     // dimension
     int dim = sqrt(size / sizeof(double));
     
