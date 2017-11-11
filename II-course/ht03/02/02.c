@@ -78,7 +78,8 @@ unsigned char *pow_matrix(unsigned char *in_mem, int dim, int power, int size) {
         munmap(in_mem, size);
         if (mem != MAP_FAILED) {
             munmap(mem, size);
-        } else {
+        } 
+        if (res != MAP_FAILED) {
             munmap(res, size);
         }
         return NULL;
