@@ -69,16 +69,17 @@ void multiply(unsigned char *res, unsigned char *mem1, unsigned char *mem2,
                 double d = temp + get_elem(mem2, k, j, dim);
                 
                 cur = (k == 0 ? d : MIN(cur, d));
-                // When we get zero we can break; because it's min positive double
+                // When we get zero we can break; because it's min positive possible double
                 // but we need additional conditions to be sure that another optimization
                 // "changes_happen" wouldn't be broken because of break; command
                 if (cur <= 0. && cur >= 0. && (changes_happen == NULL || k >= j || 
                         changes_happen_local == 1)) {
                     break;
                 }
+
             }
             to_little_endian(res + (i * dim + j) * sizeof(double), cur);
-            if (mem1_cur <= cur && mem1_cur >= cur) {
+            if (mem1_cur > cur || mem1_cur < cur) {
                 changes_happen_local = 1;
             }
         }
