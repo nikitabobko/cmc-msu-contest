@@ -15,7 +15,7 @@ enum
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-double from_little_endian(unsigned char *mem) {
+static inline double from_little_endian(unsigned char *mem) {
     double num = 0;
     unsigned long long *buf = (unsigned long long *) &num;
     *buf = 0;
@@ -26,7 +26,7 @@ double from_little_endian(unsigned char *mem) {
     return num;
 }
 
-void to_little_endian(unsigned char *mem, double num) {
+static inline void to_little_endian(unsigned char *mem, double num) {
     unsigned long long *buf = (unsigned long long *) &num;
     for (int i = 0; i < sizeof(num); i++) {
         mem[i] = *buf;
@@ -34,7 +34,7 @@ void to_little_endian(unsigned char *mem, double num) {
     }
 }
 
-double get_elem(unsigned char *mem, int i, int j, int dim) {
+static inline double get_elem(unsigned char *mem, int i, int j, int dim) {
     if (i == j) {
         return 0.;
     }
@@ -54,21 +54,37 @@ void fill_with_identity_matrix(unsigned char *mem, int dim) {
     }
 }
 
-void multiply(unsigned char *res, unsigned char *mem1, unsigned char *mem2, int dim) {
+void multiply(unsigned char *res, unsigned char *mem1, unsigned char *mem2, 
+        int dim, int *changes_happen) {
+    int changes_happen_local = 0;
     for (int i = 0; i < dim - 1; i++) {
         for (int j = i + 1; j < dim; j++) {
+            double mem1_cur = 0;
             double cur = 0;
             for (int k = 0; k < dim; k++) {
-                double d = get_elem(mem1, i, k, dim) + get_elem(mem2, k, j, dim);
+                double temp = get_elem(mem1, i, k, dim);
+                if (k == j) {
+                    mem1_cur = temp;
+                }
+                double d = temp + get_elem(mem2, k, j, dim);
                 
-                if (k == 0) {
-                    cur = d;
-                } else {
-                    cur = MIN(cur, d);
+                cur = (k == 0 ? d : MIN(cur, d));
+                // When we get zero we can break; because it's min positive double
+                // but we need additional conditions to be sure that another optimization
+                // "changes_happen" wouldn't be broken because of break; command
+                if (cur <= 0. && cur >= 0. && (changes_happen == NULL || k >= j || 
+                        changes_happen_local == 1)) {
+                    break;
                 }
             }
             to_little_endian(res + (i * dim + j) * sizeof(double), cur);
+            if (mem1_cur <= cur && mem1_cur >= cur) {
+                changes_happen_local = 1;
+            }
         }
+    }
+    if (changes_happen != NULL) {
+        *changes_happen = changes_happen_local;
     }
 }
 
@@ -89,18 +105,21 @@ unsigned char *pow_matrix(unsigned char *in_mem, int dim, int power, int size) {
     }
     fill_with_identity_matrix(res, dim);
 
+    int changes_happen = 1;
     while (power > 0) {
         if (power & 0x1) {
-            multiply(mem, res, in_mem, dim);
+            multiply(mem, res, in_mem, dim, NULL);
             unsigned char *t = res;
             res = mem;
-            mem = t;    
+            mem = t;
         }
 
-        multiply(mem, in_mem, in_mem,  dim);
-        unsigned char *t = in_mem;
-        in_mem = mem;
-        mem = t;
+        if (changes_happen) {
+            multiply(mem, in_mem, in_mem, dim, &changes_happen);
+            unsigned char *t = in_mem;
+            in_mem = mem;
+            mem = t;
+        }
 
         power /= 2;
     }
@@ -136,7 +155,9 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
     char terminator = '\0';
-    write(out_fd, &terminator, sizeof(terminator));
+    if (write(out_fd, &terminator, sizeof(terminator)) <= 0) {
+        return 1;
+    }
 
     // dimension
     int dim = sqrt(size / sizeof(double));
