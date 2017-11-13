@@ -17,19 +17,23 @@ enum
 void play_ping_pong(int n_times, int child, int *own_lock_mem, 
         int *other_child_lock_mem, int *num_mem) {
     if (child == FIRST_LOCKED_CHILD) {
-        sched_yield();
-        while(*own_lock_mem);
+        // Spin
+        while(*own_lock_mem) {
+            sched_yield();
+        }
     }
     while (*num_mem <= n_times) {
         printf("%d %d\n", child, (*num_mem)++);
+        fflush(stdout);
 
         // Lock itself
         *own_lock_mem = 1;
         // Unlock other child
         *other_child_lock_mem = 0;
-        sched_yield();
         // Spin
-        while(*own_lock_mem);
+        while(*own_lock_mem) {
+            sched_yield();
+        }
     }
     // Unlock other child
     *other_child_lock_mem = 0;
@@ -74,8 +78,8 @@ int main(int argc, char const *argv[]) {
     } else if (pid == -1) {
         return 0;
     }
-    wait(NULL);
-    wait(NULL);
+    while (wait(NULL) == -1);
+    while (wait(NULL) == -1);
 
     return 0;
 }
