@@ -69,13 +69,6 @@ void multiply(unsigned char *res, unsigned char *mem1, unsigned char *mem2,
                 double d = temp + get_elem(mem2, k, j, dim);
                 
                 cur = (k == 0 ? d : MIN(cur, d));
-                // When we get zero we can break; because it's min positive possible double
-                // but we need additional conditions to be sure that another optimization
-                // "changes_happen" wouldn't be broken because of break; command
-                if (cur <= 0. && cur >= 0. && (changes_happen == NULL || k >= j || 
-                        changes_happen_local == 1)) {
-                    break;
-                }
 
             }
             to_little_endian(res + (i * dim + j) * sizeof(double), cur);
@@ -106,17 +99,18 @@ unsigned char *pow_matrix(unsigned char *in_mem, int dim, int power, int size) {
     }
     fill_with_identity_matrix(res, dim);
 
-    int changes_happen = 1;
-    while (power > 0) {
-        if (power & 0x1) {
-            multiply(mem, res, in_mem, dim, NULL);
+    int changes_happen2 = 1;
+    int changes_happen1 = 1;
+    while (power > 0 && (changes_happen2 || changes_happen1)) {
+        if (power & 0x1 && changes_happen1) {
+            multiply(mem, res, in_mem, dim, &changes_happen1);
             unsigned char *t = res;
             res = mem;
             mem = t;
         }
 
-        if (changes_happen) {
-            multiply(mem, in_mem, in_mem, dim, &changes_happen);
+        if (changes_happen2) {
+            multiply(mem, in_mem, in_mem, dim, &changes_happen2);
             unsigned char *t = in_mem;
             in_mem = mem;
             mem = t;
