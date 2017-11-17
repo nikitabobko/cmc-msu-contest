@@ -11,7 +11,6 @@ int mysys(const char *str) {
         return -1;
     }
     int status;
-    wait(&status);
     waitpid(pid, &status, 0);
 
     if (WIFEXITED(status) && WEXITSTATUS(status) >= 0 && WEXITSTATUS(status) <= 127) {
