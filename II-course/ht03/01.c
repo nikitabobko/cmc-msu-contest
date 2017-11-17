@@ -44,6 +44,9 @@ char *line_before(char *line, char *point_to_line1) {
 }
 
 void print_lines_inverse(char *point_to_line1, int offset_to_line2_from_line1) {
+    if (offset_to_line2_from_line1 == 0) {
+        return;
+    }
     char *ptr = point_to_line1 + offset_to_line2_from_line1;
     ptr = line_before(ptr, point_to_line1);
     while (ptr >= point_to_line1) {
@@ -52,20 +55,11 @@ void print_lines_inverse(char *point_to_line1, int offset_to_line2_from_line1) {
     }
 }
 
-void my_exit(FILE *file_to_close, const char *msg, int ret_code) {
-    if (msg) {
-        fprintf(stderr, "%s\n", msg);
-    }
-    if (file_to_close) {
-        fclose(file_to_close);
-    }
-    exit(ret_code);
-}
-
-int is_regular_file(const char *path, int *size) {
+int is_regular_file(const char *path, int *size, int *error_occurred) {
     struct stat buf;
     if (lstat(path, &buf) < 0) {
-        my_exit(NULL, "Error while determening whether file is regular", 1);
+        *error_occurred = 1;
+        return -1;
     }
     *size = buf.st_size;
     return S_ISREG(buf.st_mode);
@@ -73,12 +67,19 @@ int is_regular_file(const char *path, int *size) {
 
 int main(int argc, char const **argv) {
     if (argc != 4) {
-        my_exit(NULL, "There should exact 3 arguments", 1);
+        fprintf(stderr, "There should exact 3 arguments\n");
+        return 1;
     }
     const char *path = argv[1];
-    int size;
-    if (!is_regular_file(path, &size)) {
-        my_exit(NULL, "File is not regular", 1);
+    int size, error_occurred = 0;
+    int regular = is_regular_file(path, &size, &error_occurred);
+    if (error_occurred) {
+        fprintf(stderr, "Error while determening whether file is regular\n");
+        return 1;
+    }
+    if (!regular) {
+        fprintf(stderr, "File is not regular\n");
+        return 1;
     }
 
     char *endptr1, *endptr2;
@@ -86,36 +87,44 @@ int main(int argc, char const **argv) {
     long line1 = strtol(argv[2], &endptr1, NUMERAL_SYSTEM_BASE);
     long line2 = strtol(argv[3], &endptr2, NUMERAL_SYSTEM_BASE);
     if (errno || *endptr1 != '\0' || *endptr2 != '\0') {
-        my_exit(NULL, "Error while parsing arguments", 1);
+        fprintf(stderr, "Error while parsing arguments\n");
+        return 1;
     }
     if (line1 <= 0 || line2 <= 0) {
-        my_exit(NULL, "Arguments should be positive", 1);
+        fprintf(stderr, "Arguments should be positive\n");
+        return 1;
     }
 
+    int ret_code = 0;
+    // Use goto to correctly free resources
     FILE *file = fopen(path, "r");
     if (file == NULL) {
-        my_exit(NULL, "Error occurred while opening the file", 1);
+        ret_code = 1;
+        fprintf(stderr, "Error occurred while opening the file\n");
+        goto finally;
     }
     if (size == 0) {
-        my_exit(file, NULL, 0);    
+        goto finally;
     }
     char *ptr = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fileno(file), 0);
     if (ptr == MAP_FAILED) {
-        my_exit(file, "Error occurred while mapping the file", 1);
+        ret_code = 1;
+        fprintf(stderr, "Error occurred while mapping the file\n");
+        goto finally;
     }
 
     if (line1 >= line2) {
-        my_exit(file, NULL, 0);
+        goto finally;
     }
 
     int cur_pos = 0;
     int offset_to_line1 = get_offset(1, line1, ptr, &cur_pos);
     int offset_to_line2_from_line1 = get_offset(line1, line2, ptr, &cur_pos);
-    if (offset_to_line2_from_line1 == 0) {
-        my_exit(file, NULL, 0);
-    }
 
     print_lines_inverse(ptr + offset_to_line1, offset_to_line2_from_line1);
-    my_exit(file, NULL, 0);
-    return 0;
+finally:
+    if (file) {
+        fclose(file);
+    }
+    return ret_code;
 }
