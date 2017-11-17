@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 enum
 {
@@ -78,19 +79,21 @@ int main(int argc, char const **argv) {
     if (!is_regular_file(path)) {
         my_exit(NULL, "File is not regular", 1);
     }
+
+    char *endptr1, *endptr2;
+    errno = 0;
+    long line1 = strtol(argv[2], &endptr1, NUMERAL_SYSTEM_BASE);
+    long line2 = strtol(argv[3], &endptr2, NUMERAL_SYSTEM_BASE);
+    if (errno || *endptr1 != '\0' || *endptr2 != '\0') {
+        my_exit(NULL, "Error while parsing arguments", 1);
+    }
+    if (line1 <= 0 || line2 <= 0) {
+        my_exit(NULL, "Arguments should be positive", 1);
+    }
+
     FILE *file = fopen(path, "r");
     if (file == NULL) {
         my_exit(NULL, "Error occurred while opening the file", 1);
-    }
-
-    char *endptr1, *endptr2;
-    long line1 = strtol(argv[2], &endptr1, NUMERAL_SYSTEM_BASE);
-    long line2 = strtol(argv[3], &endptr2, NUMERAL_SYSTEM_BASE);
-    if (*endptr1 != '\0' || *endptr2 != '\0') {
-        my_exit(file, "Error while parsing arguments", 1);
-    }
-    if (line1 <= 0 || line2 <= 0) {
-        my_exit(file, "Line number cannot be non postitive", 1);
     }
 
     if (line1 >= line2) {
