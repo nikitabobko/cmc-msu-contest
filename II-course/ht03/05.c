@@ -78,8 +78,8 @@ int main(int argc, char const *argv[]) {
     } else if (pid == -1) {
         return 0;
     }
-    while (wait(NULL) == -1);
-    while (wait(NULL) == -1);
+    wait(NULL);
+    wait(NULL);
 
     return 0;
 }
