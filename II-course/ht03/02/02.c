@@ -15,6 +15,7 @@ enum
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
+// Convert from little endian format to machine endian format
 static inline double from_little_endian(unsigned char *mem) {
     double num = 0;
     unsigned long long *buf = (unsigned long long *) &num;
@@ -26,6 +27,7 @@ static inline double from_little_endian(unsigned char *mem) {
     return num;
 }
 
+// Convert from machine endian format to little endian format
 static inline void to_little_endian(unsigned char *mem, double num) {
     unsigned long long *buf = (unsigned long long *) &num;
     for (int i = 0; i < sizeof(num); i++) {
