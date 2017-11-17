@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "plugin.h"
 
 enum ArgvConsts 
@@ -17,21 +18,10 @@ enum ArgvConsts
 
 enum 
 {
-    GETTING_FACTORY_FUN_NAME_BUF_SIZE = 63,
+    GETTING_FACTORY_FUN_NAME_BUF_SIZE = 64,
     NUMERAL_SYSTEM_BASE = 10,
     MAX_COUNT_VALUE = 1000,
 };
-
-int arg_str_to_int(const char *str) {
-    char *endptr;
-    errno = 0;
-    int num = strtol(str, &endptr, NUMERAL_SYSTEM_BASE);
-    if (*endptr != '\0') {
-        fprintf(stderr, "%s\n", errno == 0 ? "Inappropriate arguments format" : strerror(errno));
-        exit(1);
-    }
-    return num;
-}
 
 void my_exit(int ret_code, char *msg, void *handle_to_close, 
         struct RandomFactory *factory_to_destroy, struct RandomGenerator *generator_to_destroy) {
@@ -51,18 +41,30 @@ void my_exit(int ret_code, char *msg, void *handle_to_close,
     exit(ret_code);
 }
 
+int arg_str_to_int(const char *str) {
+    char *endptr;
+    errno = 0;
+    long num = strtol(str, &endptr, NUMERAL_SYSTEM_BASE);
+    if (*endptr != '\0' || *str == '\0' || errno || num > INT_MAX || num < INT_MIN) {
+        my_exit(1, "Inappropriate arguments format", NULL, NULL, NULL);
+    }
+    return num;
+}
+
 struct RandomFactory *get_factory(const char *plugin_name, void *handle) {
     char buf[GETTING_FACTORY_FUN_NAME_BUF_SIZE];
     int ret = snprintf(buf, sizeof(buf), "random_%s_factory", plugin_name);
+    if (!strcmp(plugin_name, "")) {
+        my_exit(1, "Empty plugin name", handle, NULL, NULL);
+    }
     if (ret >= sizeof(buf) || ret < 0) {
         my_exit(1, "Too long plugin name", handle, NULL, NULL);
     }
-
+    
     struct RandomFactory *(*fun)(void) = dlsym(handle, buf);
     if (fun == NULL) {
-        char *err = dlerror();
-        my_exit(1, err == NULL ? "Error occurred while getting function of getting factory from "
-                "plugin" : err, handle, NULL, NULL);
+        my_exit(1, "Error occurred while getting function of getting factory from "
+                "plugin", handle, NULL, NULL);
     }
     return fun();
 }
@@ -89,8 +91,7 @@ int main(int argc, char const **argv) {
 
     void *handle = dlopen(plugin_filename, RTLD_LAZY);
     if (!handle) {
-        char *err = dlerror();
-        my_exit(1, err == NULL ? "Error occurred while opening plugin" : err, handle, NULL, NULL);
+        my_exit(1, "Error occurred while opening plugin", handle, NULL, NULL);
     }
 
     struct RandomFactory *factory = get_factory(plugin_name, handle);
