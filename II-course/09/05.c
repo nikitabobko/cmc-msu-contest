@@ -18,12 +18,13 @@ FILE *get_temp_file_for_python_script(int len, char path[len]) {
     }
 
     unsigned i = 0;
+    int fd;
     // Searching for non existence file
     do {
         snprintf(path, len, "%s/temp_python_script_%d.py", dir_name, i++);
-    } while (!access(path, F_OK));
+    } while ((fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0777)) < 0);
 
-    return fdopen(open(path, O_WRONLY | O_CREAT, 0777), "w");
+    return fdopen(fd, "w");
 }
 
 int main(int argc, char const *argv[]) {
