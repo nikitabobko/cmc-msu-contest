@@ -23,30 +23,13 @@ enum
     MAX_COUNT_VALUE = 1000,
 };
 
-void my_exit(int ret_code, char *msg, void *handle_to_close, 
-        struct RandomFactory *factory_to_destroy, struct RandomGenerator *generator_to_destroy) {
-    if (msg) {
-        fprintf(stderr, "%s\n", msg);
-    }
-    if (generator_to_destroy && generator_to_destroy->ops && 
-            generator_to_destroy->ops->destroy) {
-        generator_to_destroy->ops->destroy(generator_to_destroy);
-    }
-    if (factory_to_destroy && factory_to_destroy->ops && factory_to_destroy->ops->destroy) {
-        factory_to_destroy->ops->destroy(factory_to_destroy);
-    }
-    if (handle_to_close) {
-        dlclose(handle_to_close);
-    }
-    exit(ret_code);
-}
-
-int arg_str_to_int(const char *str) {
+int arg_str_to_int(const char *str, int *error_occurred) {
     char *endptr;
     errno = 0;
     long num = strtol(str, &endptr, NUMERAL_SYSTEM_BASE);
     if (*endptr != '\0' || *str == '\0' || errno || num > INT_MAX || num < INT_MIN) {
-        my_exit(1, "Inappropriate arguments format", NULL, NULL, NULL);
+        *error_occurred = 1;
+        return -1;
     }
     return num;
 }
@@ -54,67 +37,87 @@ int arg_str_to_int(const char *str) {
 struct RandomFactory *get_factory(const char *plugin_name, void *handle) {
     char buf[GETTING_FACTORY_FUN_NAME_BUF_SIZE];
     int ret = snprintf(buf, sizeof(buf), "random_%s_factory", plugin_name);
-    if (!strcmp(plugin_name, "")) {
-        my_exit(1, "Empty plugin name", handle, NULL, NULL);
-    }
-    if (ret >= sizeof(buf) || ret < 0) {
-        my_exit(1, "Too long plugin name", handle, NULL, NULL);
+    if (!strcmp(plugin_name, "") || ret >= sizeof(buf) || ret < 0) {
+        return NULL;
     }
     
     struct RandomFactory *(*fun)(void) = dlsym(handle, buf);
     if (fun == NULL) {
-        my_exit(1, "Error occurred while getting function of getting factory from "
-                "plugin", handle, NULL, NULL);
+        return NULL;
     }
     return fun();
 }
 
 int main(int argc, char const **argv) {
+    int ret_code = 0;
+    void *handle = NULL;
+    struct RandomFactory *factory = NULL;
+    struct RandomGenerator *generator = NULL;
+
+    // Entering try-catch-finally block
     if (argc != 7) {
-        my_exit(1, "There should be exact 6 arguments", NULL, NULL, NULL);
+        ret_code = 1;
+        fprintf(stderr, "There should be exact 6 arguments\n");
+        goto finally;
     }
     const char *plugin_filename = argv[PLUGIN_FILENAME_INDEX];
     const char *plugin_name = argv[PLUGIN_NAME_INDEX];
     const char *rand_gen_constructor_args = argv[RAND_GEN_CONSTRUCTOR_ARGS_INDEX];
 
-    int count = arg_str_to_int(argv[COUNT_INDEX]);
-    if (count > MAX_COUNT_VALUE || count < 0) {
-        fprintf(stderr, "count should be larger than zero and less than %d\n", 
-                MAX_COUNT_VALUE);
-        return 1;
-    }
-    int a = arg_str_to_int(argv[A_INDEX]);
-    int b = arg_str_to_int(argv[B_INDEX]);
-    if (a > b) {
-        my_exit(1, "a should be less or equal to b", NULL, NULL, NULL);   
+    int error_occurred = 0;
+    int a = arg_str_to_int(argv[A_INDEX], &error_occurred);
+    int b = arg_str_to_int(argv[B_INDEX], &error_occurred);
+    int count = arg_str_to_int(argv[COUNT_INDEX], &error_occurred);
+    if (error_occurred || a > b || count > MAX_COUNT_VALUE || count < 0) {
+        ret_code = 1;
+        fprintf(stderr, "Inappropriate arguments format\n");
+        goto finally;
     }
 
-    void *handle = dlopen(plugin_filename, RTLD_LAZY);
+    handle = dlopen(plugin_filename, RTLD_LAZY);
     if (!handle) {
-        my_exit(1, "Error occurred while opening plugin", handle, NULL, NULL);
+        ret_code = 1;
+        fprintf(stderr, "Error occurred while opening plugin\n");
+        goto finally;
     }
 
-    struct RandomFactory *factory = get_factory(plugin_name, handle);
+    factory = get_factory(plugin_name, handle);
     if (!factory) {
-        my_exit(1, "Error occurred while getting RandomFactory", handle, factory, NULL);
+        ret_code = 1;
+        fprintf(stderr, "Error occurred while getting RandomFactory\n");
+        goto finally;
     }
     if (!factory->ops || !factory->ops->new_instance || !factory->ops->destroy) {
-        my_exit(1, "Corrupted factory", handle, factory, NULL);
+        ret_code = 1;
+        fprintf(stderr, "Corrupted factory\n");
+        goto finally;
     }
 
-    struct RandomGenerator *generator = factory->ops->new_instance(factory, 
-        rand_gen_constructor_args);
+    generator = factory->ops->new_instance(factory, rand_gen_constructor_args);
     if (!generator) {
-        my_exit(1, "Error occurred while creating new instance of RandomGenerator", handle,
-                factory, generator);
+        ret_code = 1;
+        fprintf(stderr, "Error occurred while creating new instance of RandomGenerator\n");
+        goto finally;
     }
     if (!generator->ops || !generator->ops->next_int || !generator->ops->destroy) {
-        my_exit(1, "Corrupted generator", handle, factory, generator);
+        ret_code = 1;
+        fprintf(stderr, "Corrupted generator\n");
+        goto finally;
     }
 
     for (int i = 0; i < count; ++i) {
         printf("%d\n", generator->ops->next_int(generator, a, b));
     }
 
-    my_exit(0, NULL, handle, factory, generator);
+finally:
+    if (generator && generator->ops && generator->ops->destroy) {
+        generator->ops->destroy(generator);
+    }
+    if (factory && factory->ops && factory->ops->destroy) {
+        factory->ops->destroy(factory);
+    }
+    if (handle) {
+        dlclose(handle);
+    }
+    return ret_code;
 }
