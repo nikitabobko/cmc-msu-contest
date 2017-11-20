@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <limits.h>
 #include <fcntl.h>
+#include <time.h>
 
 
 FILE *get_temp_file_for_python_script(int len, char path[len]) {
@@ -17,11 +18,11 @@ FILE *get_temp_file_for_python_script(int len, char path[len]) {
         dir_name = "/tmp";
     }
 
-    unsigned i = 0;
     int fd;
     // Searching for non existence file
+    srand(time(NULL));
     do {
-        snprintf(path, len, "%s/temp_python_script_%d.py", dir_name, i++);
+        snprintf(path, len, "%s/t_script_%d.py", dir_name, rand());
     } while ((fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0777)) < 0);
 
     return fdopen(fd, "w");
