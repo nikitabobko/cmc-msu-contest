@@ -12,10 +12,13 @@ enum
     SHARED_MEM_SIZE = 3 * sizeof(int),
     FIRST_LOCKED_CHILD = 2,
     NUMERICAL_SYSTEM_BASE = 10,
+    LOCK_ONE_INDEX = 0,
+    LOCK_TWO_INDEX = 1,
+    NUM_INDEX = 2,
 };
 
-void play_ping_pong(int n_times, int child, int *own_lock_mem, 
-        int *other_child_lock_mem, int *num_mem) {
+void play_ping_pong(int n_times, int child, volatile int *own_lock_mem, 
+        volatile int *other_child_lock_mem, volatile int *num_mem) {
     if (child == FIRST_LOCKED_CHILD) {
         // Spin
         while(*own_lock_mem) {
@@ -45,19 +48,14 @@ int main(int argc, char const *argv[]) {
         return 0;
     }
     // Shared memory
-    void *mem = mmap(NULL, SHARED_MEM_SIZE, PROT_READ | PROT_WRITE, 
+    volatile int *mem = mmap(NULL, SHARED_MEM_SIZE, PROT_READ | PROT_WRITE, 
             MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     if (mem == MAP_FAILED) {
         return 0;
     }
-    int *lock_mem_1 = mem;
-    *lock_mem_1 = 0;
-    
-    int *lock_mem_2 = lock_mem_1 + 1;
-    *lock_mem_2 = 1;
-
-    int *num_mem = lock_mem_2 + 1;
-    *num_mem = 1;
+    mem[LOCK_ONE_INDEX] = 0;
+    mem[LOCK_TWO_INDEX] = 1;
+    mem[NUM_INDEX] = 1;
 
     errno = 0;
     char *endptr;
@@ -68,13 +66,13 @@ int main(int argc, char const *argv[]) {
 
     pid_t pid = fork();
     if (!pid) {
-        play_ping_pong(num, 1, lock_mem_1, lock_mem_2, num_mem);
+        play_ping_pong(num, 1, mem + LOCK_ONE_INDEX, mem + LOCK_TWO_INDEX, mem + NUM_INDEX);
     } else if (pid == -1) {
         return 0;
     }
     pid = fork();
     if (!pid) {
-        play_ping_pong(num, 2, lock_mem_2, lock_mem_1, num_mem);
+        play_ping_pong(num, 2, mem + LOCK_TWO_INDEX, mem + LOCK_ONE_INDEX, mem + NUM_INDEX);
     } else if (pid == -1) {
         return 0;
     }
