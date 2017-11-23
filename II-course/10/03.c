@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-int run_process(const char *cmd, int input_fd, int output_fd, int parallel) {
+int run_process(const char *cmd, int input_fd, int output_fd, int parallel, pid_t *child_pid) {
     if (input_fd != -1) {
         dup2(input_fd, fileno(stdin));
     }
@@ -22,6 +22,9 @@ int run_process(const char *cmd, int input_fd, int output_fd, int parallel) {
         _exit(1);
     } else if (pid < 0) {
         exit(0);
+    }
+    if (child_pid) {
+        *child_pid = pid;
     }
     if (!parallel) {
         int status;
@@ -47,8 +50,8 @@ int main(int argc, char const *argv[]) {
         return 0;
     }
 
-    pid_t pid = fork();
-    if (!pid) {
+    pid_t pid1 = fork();
+    if (!pid1) {
         close(fd[0]);
         if (dup2(fd[1], fileno(stdout)) < 0) {
             exit(1);
@@ -59,8 +62,8 @@ int main(int argc, char const *argv[]) {
             exit(1);
         }
 
-        exit(run_process(cmd1, in, -1, 0) && run_process(cmd2, -1, -1, 0));
-    } else if (pid < 0) {
+        exit(run_process(cmd1, in, -1, 0, NULL) && run_process(cmd2, -1, -1, 0, NULL));
+    } else if (pid1 < 0) {
         return 0;
     }
     close(fd[1]);
@@ -70,11 +73,16 @@ int main(int argc, char const *argv[]) {
         wait(NULL);
         return 0;
     }
-    run_process(cmd3, fd[0], out, 1);
+    pid_t cmd3_pid;
+    run_process(cmd3, fd[0], out, 1, &cmd3_pid);
     close(fd[0]);
     close(out);
     
-    wait(NULL);
-    wait(NULL);
+    int status;
+    waitpid(cmd3_pid, &status, 0);
+    if (!WIFEXITED(status) || WEXITSTATUS(status)) {
+        kill(pid1, SIGTERM);
+    }
+    waitpid(pid1, &status, 0);
     return 0;
 }
