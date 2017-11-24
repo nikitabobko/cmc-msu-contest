@@ -13,10 +13,16 @@ int run_process(const char *cmd, int input_fd, int output_fd, int parallel, pid_
     pid_t pid;
     if (!(pid = fork())) {
         if (input_fd != -1) {
-            dup2(input_fd, fileno(stdin));
+            if (dup2(input_fd, fileno(stdin)) < 0) {
+                exit(1);
+            }
+            close(input_fd);
         }
         if (output_fd != -1) {
-            dup2(output_fd, fileno(stdout));
+            if (dup2(output_fd, fileno(stdout)) < 0) {
+                exit(1);
+            }
+            close(output_fd);
         }
         execlp(cmd, cmd, NULL);
         _exit(1);
@@ -28,7 +34,7 @@ int run_process(const char *cmd, int input_fd, int output_fd, int parallel, pid_
     }
     if (!parallel) {
         int status;
-        wait(&status);
+        waitpid(pid, &status, 0);
         return WIFEXITED(status) && !WEXITSTATUS(status);
     } else {
         return 1;
@@ -50,12 +56,13 @@ int main(int argc, char const *argv[]) {
         return 0;
     }
 
-    pid_t pid1 = fork();
-    if (!pid1) {
+    pid_t pid = fork();
+    if (!pid) {
         close(fd[0]);
         if (dup2(fd[1], fileno(stdout)) < 0) {
             exit(1);
         }
+        close(fd[1]);
 
         int in = open(file1_name, O_RDONLY);
         if (in < 0) {
@@ -63,13 +70,14 @@ int main(int argc, char const *argv[]) {
         }
 
         exit(run_process(cmd1, in, -1, 0, NULL) && run_process(cmd2, -1, -1, 0, NULL));
-    } else if (pid1 < 0) {
+    } else if (pid < 0) {
         return 0;
     }
     close(fd[1]);
 
     int out = open(file2_name, O_APPEND | O_CREAT | O_WRONLY, 0664);
     if (out < 0) {
+        close(fd[0]);
         wait(NULL);
         return 0;
     }
