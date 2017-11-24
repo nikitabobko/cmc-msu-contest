@@ -10,14 +10,14 @@
 #include <string.h>
 
 int run_process(const char *cmd, int input_fd, int output_fd, int parallel, pid_t *child_pid) {
-    if (input_fd != -1) {
-        dup2(input_fd, fileno(stdin));
-    }
-    if (output_fd != -1) {
-        dup2(output_fd, fileno(stdout));
-    }
     pid_t pid;
     if (!(pid = fork())) {
+        if (input_fd != -1) {
+            dup2(input_fd, fileno(stdin));
+        }
+        if (output_fd != -1) {
+            dup2(output_fd, fileno(stdout));
+        }
         execlp(cmd, cmd, NULL);
         _exit(1);
     } else if (pid < 0) {
@@ -78,11 +78,7 @@ int main(int argc, char const *argv[]) {
     close(fd[0]);
     close(out);
     
-    int status;
-    waitpid(cmd3_pid, &status, 0);
-    if (!WIFEXITED(status) || WEXITSTATUS(status)) {
-        kill(pid1, SIGTERM);
-    }
-    waitpid(pid1, &status, 0);
+    wait(NULL);
+    wait(NULL);
     return 0;
 }
