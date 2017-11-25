@@ -37,15 +37,15 @@ int main(int argc, const char **argv) {
             return 1;
         }
 
-        children_pids[i] = fork();
-        if (!children_pids[i]) {
+        children_pids[i - 1] = fork();
+        if (!children_pids[i - 1]) {
             if (i != argc - 1 && (dup2(fd[1], fileno(stdout)) < 0 || close(fd[1]) < 0 || 
                     close(fd[0]) < 0)) {
                 exit(1);
             }
             execlp(argv[i], argv[i], NULL);
             _exit(1);
-        } else if (children_pids[i] < 0) {
+        } else if (children_pids[i - 1] < 0) {
             kill_children(children_pids, argc - 1);
             return 1;   
         }
@@ -57,6 +57,7 @@ int main(int argc, const char **argv) {
         }
     }
     if (dup2(stdin_fd_backup, 0) < 0 || close(stdin_fd_backup) < 0) {
+        kill_children(children_pids, argc - 1);
         return 1;
     }
     for (int i = 1; i < argc; i++) {
