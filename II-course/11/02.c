@@ -8,7 +8,7 @@ typedef enum Mode {
     Mode1, Mode2
 } Mode;
 
-volatile static Mode mode = Mode1;
+static Mode mode = Mode1;
 
 void sighandler(int sig) {
     if (sig == SIGUSR1) {
@@ -21,10 +21,11 @@ void sighandler(int sig) {
 }
 
 int main(int argc, char const *argv[]) {
-    printf("%d\n", getpid());
-    fflush(stdout);
     signal(SIGUSR1, &sighandler);
     signal(SIGUSR2, &sighandler);
+    
+    printf("%d\n", getpid());
+    fflush(stdout);
 
     int num;
     while (scanf("%d", &num) == 1) {
