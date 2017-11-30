@@ -8,7 +8,6 @@
 #include <fcntl.h>
 #include <time.h>
 
-
 FILE *get_temp_file_for_python_script(int len, char path[len]) {
     const char *dir_name = getenv("XDG_RUNTIME_DIR");
     if (!dir_name) {
@@ -20,8 +19,8 @@ FILE *get_temp_file_for_python_script(int len, char path[len]) {
 
     int fd;
     // Searching for non existence file
-    srand(time(NULL));
     do {
+        srand(clock());
         snprintf(path, len, "%s/t_script_%d.py", dir_name, rand());
     } while ((fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0777)) < 0);
 
