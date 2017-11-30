@@ -17,6 +17,7 @@ void ping_pong(FILE *w, FILE *r, int child_num, pid_t bro_pid, int max) {
         while(!flag) {
             usleep(1000);
         }
+        flag = 0;
     }
     int num;
     while(1) {
@@ -40,7 +41,10 @@ void ping_pong(FILE *w, FILE *r, int child_num, pid_t bro_pid, int max) {
         
         kill(bro_pid, SIGUSR1);
         
-        pause();
+        while(!flag) {
+            usleep(1000);
+        }
+        flag = 0;
     }
     fprintf(w, "0\n");
     fflush(w);
