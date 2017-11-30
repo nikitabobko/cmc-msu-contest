@@ -8,7 +8,7 @@ typedef enum Mode {
     Mode1, Mode2
 } Mode;
 
-static Mode mode = Mode1;
+volatile Mode mode = Mode1;
 
 void sighandler(int sig) {
     if (sig == SIGUSR1) {
