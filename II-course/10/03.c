@@ -13,13 +13,13 @@ int run_process(const char *cmd, int input_fd, int output_fd, int parallel, pid_
     pid_t pid;
     if (!(pid = fork())) {
         if (input_fd != -1) {
-            if (dup2(input_fd, fileno(stdin)) < 0) {
+            if (dup2(input_fd, STDIN_FILENO) < 0) {
                 exit(1);
             }
             close(input_fd);
         }
         if (output_fd != -1) {
-            if (dup2(output_fd, fileno(stdout)) < 0) {
+            if (dup2(output_fd, STDOUT_FILENO) < 0) {
                 exit(1);
             }
             close(output_fd);
@@ -50,7 +50,7 @@ int main(int argc, char const *argv[]) {
     const char *cmd3 = argv[3];
     const char *file1_name = argv[4];
     const char *file2_name = argv[5];
-    
+
     int fd[2];
     if (pipe(fd) < 0) {
         return 0;
@@ -59,7 +59,7 @@ int main(int argc, char const *argv[]) {
     pid_t pid = fork();
     if (!pid) {
         close(fd[0]);
-        if (dup2(fd[1], fileno(stdout)) < 0) {
+        if (dup2(fd[1], STDOUT_FILENO) < 0) {
             exit(1);
         }
         close(fd[1]);
@@ -85,7 +85,7 @@ int main(int argc, char const *argv[]) {
     run_process(cmd3, fd[0], out, 1, &cmd3_pid);
     close(fd[0]);
     close(out);
-    
+
     wait(NULL);
     wait(NULL);
     return 0;
