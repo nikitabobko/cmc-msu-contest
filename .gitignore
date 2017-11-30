@@ -3,6 +3,9 @@
 *.out
 *.o
 
+# Shared libraries
+*.so
+
 # Txt's for input
 *.txt
 
