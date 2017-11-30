@@ -7,6 +7,7 @@
 #include <string.h>
 #include <limits.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 enum
 {
@@ -121,10 +122,12 @@ int main(int argc, char const *argv[]) {
     if (in_fd < 0 || out_fd < 0) {
         return 1;
     }
-    int size = lseek(in_fd, 0, SEEK_END);
-    if (size == -1) {
+
+    struct stat info;
+    if (fstat(in_fd, &info) < 0) {
         return 1;
     }
+    off_t size = info.st_size;
 
     if (lseek(out_fd, size - 1, SEEK_SET) < 0) {
         return 1;
