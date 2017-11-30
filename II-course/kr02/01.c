@@ -20,7 +20,7 @@ int read_line(char *buf, int size, FILE *f) {
 }
 
 int main(void) {
-    unsigned long long write_count = 0, exec_count = 0;
+    unsigned write_count = 0, exec_count = 0;
     char buf[BUF_SIZE];
     while(read_line(buf, sizeof(buf), stdin)) {
         unsigned a, b;
@@ -33,5 +33,5 @@ int main(void) {
             exec_count += b - a;
         }
     }
-    printf("%llu\n%llu\n", write_count, exec_count);
+    printf("%u\n%u\n", write_count, exec_count);
 }
