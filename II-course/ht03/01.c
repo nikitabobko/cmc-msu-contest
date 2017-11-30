@@ -14,9 +14,9 @@ enum
     NUMERAL_SYSTEM_BASE = 10
 };
 
-int get_offset(int start_line, int line, char *ptr, int *cur_pos) {
-    int cur_line = start_line;
-    int byte_offset = 0;
+size_t get_offset(long start_line, long line, const char *ptr, size_t *cur_pos) {
+    long cur_line = start_line;
+    size_t byte_offset = 0;
     while (cur_line < line && ptr[*cur_pos] != '\0') {
         if (ptr[(*cur_pos)++] == '\n') {
             cur_line++;
@@ -34,7 +34,7 @@ void print_line(const char *line) {
     putchar('\n');
 }
 
-char *line_before(char *line, char *point_to_line1) {
+char *line_before(char *line, const char *point_to_line1) {
     line--;
     do {
         line--;
@@ -43,7 +43,7 @@ char *line_before(char *line, char *point_to_line1) {
     return line;
 }
 
-void print_lines_inverse(char *point_to_line1, int offset_to_line2_from_line1) {
+void print_lines_inverse(char *point_to_line1, size_t offset_to_line2_from_line1) {
     if (offset_to_line2_from_line1 == 0) {
         return;
     }
@@ -83,12 +83,16 @@ int main(int argc, char const **argv) {
         fprintf(stderr, "Error occurred while opening the file\n");
         goto finally;
     }
+
     errno = 0;
-    int size = lseek(fd, 0, SEEK_END);
-    if (size < 0 && errno) {
+    struct stat info;
+    if (fstat(fd, &info) < 0 || errno) {
         ret_code = 1;
         fprintf(stderr, "Error occurred while determening file size\n");
+        goto finally;
     }
+    off_t size = info.st_size;
+
     if (size == 0) {
         goto finally;
     }
@@ -103,9 +107,9 @@ int main(int argc, char const **argv) {
         goto finally;
     }
 
-    int cur_pos = 0;
-    int offset_to_line1 = get_offset(1, line1, ptr, &cur_pos);
-    int offset_to_line2_from_line1 = get_offset(line1, line2, ptr, &cur_pos);
+    size_t cur_pos = 0;
+    size_t offset_to_line1 = get_offset(1, line1, ptr, &cur_pos);
+    size_t offset_to_line2_from_line1 = get_offset(line1, line2, ptr, &cur_pos);
 
     print_lines_inverse(ptr + offset_to_line1, offset_to_line2_from_line1);
 finally:
