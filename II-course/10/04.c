@@ -22,7 +22,7 @@ int main(int argc, const char **argv) {
     if (argc < 2) {
         return 0;
     }
-    int stdin_fd_backup = dup(fileno(stdin));
+    int stdin_fd_backup = dup(STDIN_FILENO);
     if (stdin_fd_backup < 0) {
         return 1;
     }
@@ -39,7 +39,7 @@ int main(int argc, const char **argv) {
 
         children_pids[i - 1] = fork();
         if (!children_pids[i - 1]) {
-            if (i != argc - 1 && (dup2(fd[1], fileno(stdout)) < 0 || close(fd[1]) < 0 || 
+            if (i != argc - 1 && (dup2(fd[1], STDOUT_FILENO) < 0 || close(fd[1]) < 0 || 
                     close(fd[0]) < 0)) {
                 exit(1);
             }
