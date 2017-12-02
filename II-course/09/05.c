@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <limits.h>
 #include <fcntl.h>
-#include <time.h>
+#include <sys/time.h>
 
 FILE *get_temp_file_for_python_script(int len, char path[len]) {
     const char *dir_name = getenv("XDG_RUNTIME_DIR");
@@ -17,10 +17,12 @@ FILE *get_temp_file_for_python_script(int len, char path[len]) {
         dir_name = "/tmp";
     }
 
+    struct timeval time_info;
     int fd;
     // Searching for non existence file
     do {
-        srand(clock());
+        gettimeofday(&time_info, NULL);
+        srand(time_info.tv_usec);
         snprintf(path, len, "%s/t_script_%d.py", dir_name, rand());
     } while ((fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0777)) < 0);
 
