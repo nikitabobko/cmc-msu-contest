@@ -3,7 +3,7 @@
 
 enum
 {
-    BUF_SIZE = 2048
+    BUF_SIZE = 32
 };
 
 int read_line(char *buf, int size, FILE *f) {
