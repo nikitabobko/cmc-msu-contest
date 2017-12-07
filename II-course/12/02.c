@@ -10,16 +10,6 @@
 #include <unistd.h>
 #include <wait.h>
 
-void operation(int *data, int ind1, int ind2, int value) {
-    if (ind1 != ind2) {
-        int tmp1 = data[ind1] - value;
-        int tmp2 = data[ind2] + value;
-
-        data[ind1] = tmp1;
-        data[ind2] = tmp2;
-    }
-}
-
 enum 
 {
     MAX_VAL = 10,
@@ -46,6 +36,7 @@ int main(int argc, char const *argv[]) {
     
     int memid = -1;
     int semid = -1;
+    int *mem = NULL;
     int kill_children_flag = 0;
     pid_t *pids = malloc(nproc * sizeof(*pids));
     if (pids == NULL) {
@@ -54,7 +45,6 @@ int main(int argc, char const *argv[]) {
     if (argc - NUM_OF_ARGS != nproc) {
         return 1;
     }
-    int *mem;
     memid = shmget(key, count * sizeof(*mem), 0666 | IPC_CREAT);
     if (memid == -1) {
         goto free_res;
@@ -78,7 +68,7 @@ int main(int argc, char const *argv[]) {
         pids[i] = fork();
         if (!pids[i]) {
             srand(strtoul(argv[i + NUM_OF_ARGS], NULL, 10));
-            for (int i = 0; i < iter_count; i++) {
+            for (int j = 0; j < iter_count; j++) {
                 int ind1 = rand() / (RAND_MAX + 1.) * count; 
                 int ind2 = rand() / (RAND_MAX + 1.) * count;
                 int value = rand() / (RAND_MAX + 1.) * MAX_VAL;
@@ -117,8 +107,10 @@ free_res:
     for (int i = 0; i < nproc; i++) {
         wait(NULL);
     }
-    for (int i = 0; i < count; i++) {
-        printf("%d%c", mem[i], i == count -1 ? '\n' : ' ');
+    if (mem) {
+        for (int i = 0; i < count; i++) {
+            printf("%d%c", mem[i], i == count -1 ? '\n' : ' ');
+        }
     }
     if (memid != -1) {
         shmctl(memid, IPC_RMID, NULL);
