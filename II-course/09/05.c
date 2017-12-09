@@ -8,6 +8,24 @@
 #include <fcntl.h>
 #include <sys/time.h>
 
+int get_random_number(void) {
+    int rand_fd;
+    int random;
+    if ((rand_fd = open("/dev/urandom", O_RDONLY)) < 0 || 
+            read(rand_fd, &random, sizeof(random)) < 0) {
+        if (rand_fd > 0) {
+            close(rand_fd);
+        }
+        struct timeval time_info;
+        gettimeofday(&time_info, NULL);
+        srand(time_info.tv_usec);
+        return rand();    
+    } else {
+        close(rand_fd);
+        return random;
+    }
+}
+
 FILE *get_temp_file_for_python_script(int len, char path[len]) {
     const char *dir_name = getenv("XDG_RUNTIME_DIR");
     if (!dir_name) {
@@ -17,13 +35,10 @@ FILE *get_temp_file_for_python_script(int len, char path[len]) {
         dir_name = "/tmp";
     }
 
-    struct timeval time_info;
     int fd;
     // Searching for non existence file
     do {
-        gettimeofday(&time_info, NULL);
-        srand(time_info.tv_usec);
-        snprintf(path, len, "%s/t_script_%d.py", dir_name, rand());
+        snprintf(path, len, "%s/t_script_%d.py", dir_name, get_random_number());
     } while ((fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0777)) < 0);
 
     return fdopen(fd, "w");
