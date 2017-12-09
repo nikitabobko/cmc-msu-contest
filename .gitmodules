@@ -1,0 +1,3 @@
+[submodule "II-course/numerical-methods/numerical-methods-1.0"]
+	path = II-course/numerical-methods/numerical-methods-1.0
+	url = git@bitbucket.org:nikitabobko/numerical-methods-1.0.git
