@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]) {
     long long maxval = strtoll(argv[3], NULL, 10);
 
     int sem_id = semget(key, nproc, 0777 | IPC_CREAT);
-    long long *mem;
+    volatile long long *mem;
     int mem_id = shmget(key, sizeof(*mem), 0666 | IPC_CREAT);
 
     if (sem_id < 0 || mem_id < 0) {
@@ -49,10 +49,6 @@ int main(int argc, char const *argv[]) {
             while (1) {
                 struct sembuf op = {i, -1, SEM_UNDO};
                 if (semop(sem_id, &op, 1) < 0) {
-                    exit(1);
-                }
-    
-                if (mem == (void *)-1) {
                     exit(1);
                 }
     
